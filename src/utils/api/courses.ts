@@ -1,7 +1,8 @@
 import axios from "./axios";
-
 import { API_BASE_URL } from "./constants";
 const BASE_URL = `${API_BASE_URL}/Courses`;
+
+
 export interface CreateCourseDto {
   name?: string | null;
   description?: string | null;
@@ -31,40 +32,27 @@ export interface CourseDtoPaginationResult {
   total: number;
 }
 
-export const createCourse = async (data: CreateCourseDto): Promise<number> => {
-  const res = await axios.post<number>(`${BASE_URL}`, data);
-  return res.data;
-};
-
-export const deleteCourse = async (id: number): Promise<void> => {
-  await axios.delete(`${BASE_URL}/${id}`);
-};
-
-export const updateCourse = async (id: number, data: UpdateCourseDto): Promise<void> => {
-  await axios.put(`${BASE_URL}/${id}`, data);
-};
-
-export const getCourse = async (id: number): Promise<any> => {
-  const res = await axios.get<CourseDto>(`${BASE_URL}/${id}`);
-  return res.data;
-};
-
-export const restoreCourse = async (id: number): Promise<void> => {
-  await axios.put(`${BASE_URL}/restore/${id}`);
-};
-
 export const getCoursesPaginated = async (params: {
   Page?: number;
   Limit?: number;
   SortField?: string;
   IsDesc?: boolean;
   FreeText?: string;
-  OnlyDeleted?: boolean;
-}): Promise<CourseDtoPaginationResult> => {
-  const res = await axios.get<CourseDtoPaginationResult>(`${BASE_URL}/pagination`, { params });
-  const { data, total } = res.data || {};
-  return {
-    data: data ?? [],
-    total: typeof total === "number" ? total : 0,
-  };
+}): Promise<any> => {
+  const res = await axios.get(`${BASE_URL}/pagination`, { params });
+  return res.data;
+};
+
+export const createCourse = async (data: any): Promise<any> => {
+  const res = await axios.post(BASE_URL, data);
+  return res.data;
+};
+
+export const updateCourse = async (id: number, data: any): Promise<any> => {
+  const res = await axios.put(`${BASE_URL}/${id}`, data);
+  return res.data;
+};
+
+export const deleteCourse = async (id: number): Promise<void> => {
+  await axios.delete(`${BASE_URL}/${id}`);
 };

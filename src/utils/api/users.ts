@@ -11,6 +11,13 @@ export interface CreateUserDto {
   phone?: string | null;
   address?: string | null;
   roleId: number;
+  image?: string | null;
+  nationalId: "string" | null;
+  cityId: 0;
+  education: "string" | null;
+  salaryTypeId: 0;
+  salary: 0;
+  roleIds: number[];
 }
 
 export interface UpdateUserDto {
@@ -48,8 +55,11 @@ export const loginUser = async (userNameOrEmail: string, password: string): Prom
   return res.data;
 }
 
+// Increase timeout and add logging for debugging network issues
 export const createUser = async (data: CreateUserDto): Promise<number> => {
-  const res = await axios.post<number>(`${BASE_URL}`, data);
+  console.log("[CREATE USER] URL:", `${BASE_URL}`); // Log the URL
+  console.log("[CREATE USER] Payload:", data); // Log the payload
+  const res = await axios.post<number>(`${BASE_URL}`, data, { timeout: 20000 }); // Increased timeout to 20 seconds
   return res.data;
 };
 

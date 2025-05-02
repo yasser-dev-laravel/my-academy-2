@@ -62,7 +62,15 @@ export const deleteEmployee = async (id: number): Promise<void> => {
 };
 
 export const updateEmployee = async (id: number, data: UpdateEmployeeDto): Promise<void> => {
-  await axios.put(`${BASE_URL}/${id}`, data);
+  // أرسل فقط الحقول غير الفارغة أو undefined
+  const cleanData: any = {};
+  Object.keys(data).forEach(key => {
+    const value = (data as any)[key];
+    if (value !== undefined && value !== "") {
+      cleanData[key] = value;
+    }
+  });
+  await axios.put(`${BASE_URL}/${id}`, cleanData);
 };
 
 export const getEmployee = async (id: number): Promise<any> => {

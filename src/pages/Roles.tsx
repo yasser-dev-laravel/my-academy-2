@@ -109,21 +109,26 @@ const Roles = () => {
         </Table>
       </CardContent>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="dialog-description">
           <DialogHeader>
             <DialogTitle>{editIndex !== null ? "تعديل الدور" : "إضافة دور جديد"}</DialogTitle>
+            <p id="dialog-description" className="text-sm text-muted-foreground">
+              {editIndex !== null
+                ? "قم بتعديل بيانات الدور والصلاحيات ثم اضغط على حفظ التعديلات."
+                : "أدخل بيانات الدور الجديد وحدد الصلاحيات ثم اضغط على إضافة الدور."}
+            </p>
           </DialogHeader>
           <div className="flex flex-col gap-4">
             <Input
               placeholder="اسم الدور"
               value={form.name || ""}
-              onChange={e => handleChange("name", e.target.value)}
+              onChange={(e) => handleChange("name", e.target.value)}
               className="mb-2"
             />
             <Input
               placeholder="كود الدور"
               value={form.code || ""}
-              onChange={e => handleChange("code", e.target.value)}
+              onChange={(e) => handleChange("code", e.target.value)}
               className="mb-2"
             />
             <div className="overflow-x-auto">
@@ -141,12 +146,12 @@ const Roles = () => {
                   {(form.permissions || []).map((perm, idx) => (
                     <TableRow key={perm.screen}>
                       <TableCell>{perm.screen}</TableCell>
-                      {(["view", "add", "edit", "delete"] as (keyof Permission)[]).map(type => (
+                      {(["view", "add", "edit", "delete"] as (keyof Permission)[]).map((type) => (
                         <TableCell key={type}>
                           <input
                             type="checkbox"
                             checked={perm[type] === true || perm[type] === "true"}
-                            onChange={e => handlePermChange(perm.screen, type, e.target.checked)}
+                            onChange={(e) => handlePermChange(perm.screen, type, e.target.checked)}
                           />
                         </TableCell>
                       ))}

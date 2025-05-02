@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Bell, LogOut, Menu, Moon, Sun, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const { language, toggleLanguage } = useLanguage();
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -67,6 +68,16 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <Sun className="h-4 w-4" />
           )}
           <span className="sr-only">Toggle Theme</span>
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          onClick={toggleLanguage}
+        >
+          {language === "ar" ? "EN" : "AR"}
+          <span className="sr-only">Toggle Language</span>
         </Button>
         
         <Button variant="ghost" size="icon" className="h-9 w-9">

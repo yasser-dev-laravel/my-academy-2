@@ -2,7 +2,6 @@ import axios from "./axios";
 import { API_BASE_URL } from "./constants";
 const BASE_URL = `${API_BASE_URL}/Categories`;
 
-
 export interface CreateCategoryDto {
   name?: string | null;
   description?: string | null;
@@ -26,25 +25,40 @@ export interface CategoryDtoPaginationResult {
 }
 
 export const createCategory = async (data: CreateCategoryDto): Promise<number> => {
-  const res = await axios.post<number>(`${BASE_URL}`, data);
+  const token = localStorage.getItem("token");
+  const res = await axios.post<number>(`${BASE_URL}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.data;
 };
 
 export const deleteCategory = async (id: number): Promise<void> => {
-  await axios.delete(`${BASE_URL}/${id}`);
+  const token = localStorage.getItem("token");
+  await axios.delete(`${BASE_URL}/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 };
 
 export const updateCategory = async (id: number, data: UpdateCategoryDto): Promise<void> => {
-  await axios.put(`${BASE_URL}/${id}`, data);
+  const token = localStorage.getItem("token");
+  await axios.put(`${BASE_URL}/${id}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 };
 
 export const getCategory = async (id: number): Promise<any> => {
-  const res = await axios.get<CategoryDto>(`${BASE_URL}/${id}`);
+  const token = localStorage.getItem("token");
+  const res = await axios.get<CategoryDto>(`${BASE_URL}/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.data;
 };
 
 export const restoreCategory = async (id: number): Promise<void> => {
-  await axios.put(`${BASE_URL}/restore/${id}`);
+  const token = localStorage.getItem("token");
+  await axios.put(`${BASE_URL}/restore/${id}`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 };
 
 export const getCategoriesPaginated = async (params: {
@@ -55,15 +69,18 @@ export const getCategoriesPaginated = async (params: {
   FreeText?: string;
   OnlyDeleted?: boolean;
 }): Promise<CategoryDtoPaginationResult> => {
+  const token = localStorage.getItem("token");
   try {
-    const res = await axios.get<CategoryDtoPaginationResult>(`${BASE_URL}/pagination`, { params });
+    const res = await axios.get<CategoryDtoPaginationResult>(`${BASE_URL}/pagination`, {
+      params,
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const { data, total } = res.data || {};
     return {
       data: Array.isArray(data) ? data : [],
       total: typeof total === "number" ? total : 0,
     };
   } catch (error) {
-    // في حال حدوث خطأ، أعد مصفوفة فارغة وعدد 0
     return { data: [], total: 0 };
   }
 };

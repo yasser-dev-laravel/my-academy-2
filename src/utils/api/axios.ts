@@ -5,12 +5,16 @@ const instance = axios.create({
   timeout: 10000, // Optional: Set a timeout in milliseconds
 });
 
+// Add logging to verify if the token is being included in requests
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("[AXIOS] Token included in request headers:", config.headers.Authorization); // Log the token
+    } else {
+      console.log("[AXIOS] No token found in localStorage"); // Log if no token is found
     }
     return config;
   },

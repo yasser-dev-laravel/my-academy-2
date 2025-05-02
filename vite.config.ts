@@ -12,8 +12,7 @@ export default defineConfig(({ mode }) => ({
         target: "http://198.7.125.213:5000", // عدّل المنفذ إذا كان سيرفرك يعمل على منفذ آخر
         changeOrigin: true,
         secure: false,
-        // إذا كان السيرفر لا يحتاج /api في المسار، فعّل السطر التالي:
-        // rewrite: (path) => path.replace(/^\\/api/, "")
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },

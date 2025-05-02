@@ -8,11 +8,11 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import Layout from "./components/layout/Layout";
 import Index from "./pages/Index";
-import Employees from "./pages/Employees";
+import EmployeesPage from "./pages/employees";
 import Branches from "./pages/branches";
-import Rooms from "./pages/Rooms";
-import Categories from "./pages/Categories";
-import Courses from "./pages/Courses";
+import Rooms from "./pages/rooms";
+import CategoriesPage from "./pages/categories";
+import Courses from "./pages/courses";
 import Instructors from "./pages/Instructors";
 import NotFound from "./pages/NotFound";
 import LoginForm from "./components/auth/LoginForm";
@@ -51,10 +51,10 @@ const AuthWrapper = () => {
     <Layout>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/employees" element={<Employees />} />
+        <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/branches" element={<Branches />} />
         <Route path="/rooms" element={<Rooms />} />
-        <Route path="/categories" element={<Categories />} />
+        <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/instructors" element={<Instructors />} />
         <Route path="/messaging" element={<Messaging />} />

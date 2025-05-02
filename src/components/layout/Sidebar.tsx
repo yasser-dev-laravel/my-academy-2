@@ -274,10 +274,10 @@ export const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }: SidebarProps) =
                 collapsed={collapsed}
               />
               <NavItem 
-                to="/departments" 
+                to="/categories" 
                 icon={Layers} 
                 label={t.departments}
-                active={isActive("/departments")} 
+                active={isActive("/categories")} 
                 onClick={handleNavItemClick} 
                 collapsed={collapsed}
               />
