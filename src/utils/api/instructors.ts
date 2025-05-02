@@ -1,0 +1,87 @@
+import axios from "axios";
+
+const BASE_URL = "/api/Instructors";
+
+export interface CreateInstructorDto {
+  email: string;
+  name: string;
+  password?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  nationalId?: string | null;
+  cityId?: number | null;
+  salary: number;
+  salaryTypeId?: number | null;
+  coursesIds?: number[] | null;
+}
+
+export interface UpdateInstructorDto {
+  id: number;
+  email: string;
+  name: string;
+  password?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  nationalId?: string | null;
+  cityId?: number | null;
+  salary: number;
+  salaryTypeId?: number | null;
+  coursesIds?: number[] | null;
+}
+
+export interface InstructorDto {
+  id?: number | null;
+  name: string;
+  email: string;
+  password?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  nationalId?: string | null;
+  cityId?: number | null;
+  salary: number;
+  salaryTypeId?: number | null;
+  coursesIds?: number[] | null;
+}
+
+export interface InstructorDtoPaginationResult {
+  data?: InstructorDto[] | null;
+  total: number;
+}
+
+export const createInstructor = async (data: CreateInstructorDto): Promise<number> => {
+  const res = await axios.post<number>(`${BASE_URL}`, data);
+  return res.data;
+};
+
+export const deleteInstructor = async (id: number): Promise<void> => {
+  await axios.delete(`${BASE_URL}/${id}`);
+};
+
+export const updateInstructor = async (id: number, data: UpdateInstructorDto): Promise<void> => {
+  await axios.put(`${BASE_URL}/${id}`, data);
+};
+
+export const getInstructor = async (id: number): Promise<any> => {
+  const res = await axios.get<InstructorDto>(`${BASE_URL}/${id}`);
+  return res.data;
+};
+
+export const restoreInstructor = async (id: number): Promise<void> => {
+  await axios.put(`${BASE_URL}/restore/${id}`);
+};
+
+export const getInstructorsPaginated = async (params: {
+  Page?: number;
+  Limit?: number;
+  SortField?: string;
+  IsDesc?: boolean;
+  FreeText?: string;
+  OnlyDeleted?: boolean;
+}): Promise<InstructorDtoPaginationResult> => {
+  const res = await axios.get<InstructorDtoPaginationResult>(`${BASE_URL}/pagination`, { params });
+  const { data, total } = res.data || {};
+  return {
+    data: data ?? [],
+    total: typeof total === "number" ? total : 0,
+  };
+};

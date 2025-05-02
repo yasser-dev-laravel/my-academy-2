@@ -1,0 +1,28 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
+  server: {
+    host: "::",
+    port: 8000,
+    proxy: {
+      "/api": {
+        target: "http://198.7.125.213:5000", // عدّل المنفذ إذا كان سيرفرك يعمل على منفذ آخر
+        changeOrigin: true,
+        secure: false,
+        // إذا كان السيرفر لا يحتاج /api في المسار، فعّل السطر التالي:
+        // rewrite: (path) => path.replace(/^\\/api/, "")
+      },
+    },
+  },
+  plugins: [
+    react(),
+  ].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+}));
