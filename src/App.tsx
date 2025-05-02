@@ -9,7 +9,7 @@ import { LanguageProvider } from "./context/LanguageContext";
 import Layout from "./components/layout/Layout";
 import Index from "./pages/Index";
 import Employees from "./pages/Employees";
-import Branches from "./pages/Branches";
+import Branches from "./pages/branches";
 import Rooms from "./pages/Rooms";
 import Categories from "./pages/Categories";
 import Courses from "./pages/Courses";

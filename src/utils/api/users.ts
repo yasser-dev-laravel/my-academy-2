@@ -1,6 +1,8 @@
-import axios from "@/utils/api/axios";
+import axios from "./axios";
+import { API_BASE_URL } from "./constants";
+const BASE_URL = `${API_BASE_URL}/Users`;
 
-const BASE_URL = "/api/Users";
+
 
 export interface CreateUserDto {
   name: string;
@@ -42,7 +44,7 @@ export interface LoginResponse {
 }
 
 export const loginUser = async (userNameOrEmail: string, password: string): Promise<LoginResponse> => {
-  const res = await axios.post<LoginResponse>(`/api/Auth/login`, { userNameOrEmail, password });
+  const res = await axios.post<LoginResponse>(`/Auth/login`, { userNameOrEmail, password });
   return res.data;
 }
 

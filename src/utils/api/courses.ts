@@ -1,7 +1,7 @@
-import axios from "@/utils/api/axios";
+import axios from "./axios";
 
-const BASE_URL = "/api/Courses";
-
+import { API_BASE_URL } from "./constants";
+const BASE_URL = `${API_BASE_URL}/Courses`;
 export interface CreateCourseDto {
   name?: string | null;
   description?: string | null;

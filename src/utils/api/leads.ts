@@ -1,6 +1,6 @@
-import axios from "axios";
-
-const BASE_URL = "/api/Leads";
+import axios from "./axios";
+import { API_BASE_URL } from "./constants";
+const BASE_URL = `${API_BASE_URL}/L`;
 
 export interface CreateLeadDto {
   name: string;

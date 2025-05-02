@@ -1,6 +1,7 @@
-import axios from "@/utils/api/axios";
+import axios from "./axios";
+import { API_BASE_URL } from "./constants";
+const BASE_URL = `${API_BASE_URL}/Categories`;
 
-const BASE_URL = "/api/Categories";
 
 export interface CreateCategoryDto {
   name?: string | null;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -35,18 +34,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { getRoomsPaginated, createRoom, deleteRoom } from "@/utils/api/rooms";
+import { getRoomsPaginated, createRoom, deleteRoom, updateRoom } from "@/utils/api/rooms";
 import { getBranchesPaginated } from "@/utils/api/branches";
+import { getHelpTableRoomType } from "@/utils/api/helpTables";
 import { Laptop, Monitor, Users, MapPin, Plus, Search, Trash } from "lucide-react";
+import RoomForm from "./RoomForm";
+import RoomsTable from "./RoomsTable";
 
 const Labs = () => {
   const [labs, setLabs] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
+  const [roomTypes, setRoomTypes] = useState<{ value: string; label: string }[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [formData, setFormData] = useState<Partial<any>>({
-    name: "",
-    branchId: "",
-  });
+  const [formData, setFormData] = useState<{ name: string; branchId: string ; type: string; capacity: number | string; }>({ name: "", branchId: "" ,type: "", capacity: ""});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -54,16 +54,24 @@ const Labs = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [roomsRes, branchesRes] = await Promise.all([
+        const [roomsRes, branchesRes, roomTypesRes] = await Promise.all([
           getRoomsPaginated({ Page: 1, Limit: 100 }),
           getBranchesPaginated({ Page: 1, Limit: 100 }),
+          (getHelpTableRoomType() as unknown as Promise<{ data: { id: number; name: string }[] }>),
         ]);
         setLabs(roomsRes.data || []);
         setBranches(branchesRes.data || []);
+        setRoomTypes(
+          ((roomTypesRes as { data: { id: number; name: string }[] }).data || []).map((type) => ({
+            value: type.id.toString(),
+            label: type.name,
+          }))
+        );
       } catch (error) {
         setLabs([]);
         setBranches([]);
-        toast({ title: "خطأ في تحميل البيانات", description: "تعذر جلب بيانات القاعات أو الفروع من الخادم", variant: "destructive" });
+        setRoomTypes([]);
+        toast({ title: "خطأ في تحميل البيانات", description: "تعذر جلب بيانات القاعات أو الفروع أو أنواع القاعات من الخادم", variant: "destructive" });
       }
     }
     fetchData();
@@ -97,7 +105,7 @@ const Labs = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.branchId) {
+    if (!formData.name || !formData.branchId || !formData.type || !formData.capacity) {
       toast({
         title: "خطأ في البيانات",
         description: "يرجى ملء جميع الحقول المطلوبة",
@@ -107,19 +115,36 @@ const Labs = () => {
     }
 
     try {
-      const dto = {
-        name: formData.name!,
-        branchId: Number(formData.branchId),
-      };
-      await createRoom(dto);
-      toast({ title: "تم بنجاح", description: "تم إضافة القاعة بنجاح" });
-      setIsDialogOpen(false);
-      setFormData({ name: "", branchId: "" });
+      if (editDialog.open && editDialog.room) {
+        // تعديل
+        const dto = {
+          id: editDialog.room.id,
+          name: formData.name!,
+          branchId: Number(formData.branchId),
+          type: formData.type,
+          capacity: Number(formData.capacity),
+        };
+        await updateRoom(editDialog.room.id, dto);
+        toast({ title: "تم بنجاح", description: "تم تعديل القاعة بنجاح" });
+        setEditDialog({ open: false, room: null });
+      } else {
+        // إضافة
+        const dto = {
+          name: formData.name!,
+          branchId: Number(formData.branchId),
+          type: formData.type,
+          capacity: Number(formData.capacity),
+        };
+        await createRoom(dto);
+        toast({ title: "تم بنجاح", description: "تم إضافة القاعة بنجاح" });
+        setIsDialogOpen(false);
+        setFormData({ name: "", branchId: "", type: "", capacity: "" });
+      }
       // Refetch rooms
       const roomsRes = await getRoomsPaginated({ Page: 1, Limit: 100 });
       setLabs(roomsRes.data || []);
     } catch (error) {
-      toast({ title: "خطأ في الإضافة", description: "تعذر إضافة القاعة", variant: "destructive" });
+      toast({ title: "خطأ في العملية", description: "تعذر حفظ بيانات القاعة", variant: "destructive" });
     }
   };
 
@@ -168,6 +193,39 @@ const Labs = () => {
     }
   };
 
+  // تجهيز بيانات الجدول مع جميع خصائص القاعة
+  const roomsTableData = filteredLabs.map((lab: any) => ({
+    id: lab.id,
+    name: lab.name,
+    type: lab.type,
+    capacity: lab.capacity,
+    branchName: getBranchName(lab.branchId),
+    // يمكنك إضافة خصائص أخرى إذا وجدت
+  }));
+
+  // دالة فتح نافذة التعديل
+  const [editDialog, setEditDialog] = useState({ open: false, room: null as any });
+  const handleEdit = (room: any) => {
+    // تأكد من أن النوع مطابق لقيم roomTypes
+    let typeValue = room.type;
+    // ابحث عن النوع المناسب في roomTypes حسب الاسم أو القيمة
+    const foundType = roomTypes.find(rt => rt.value === room.type || rt.label === room.type);
+    if (foundType) {
+      typeValue = foundType.value;
+    } else if (roomTypes.length > 0) {
+      typeValue = roomTypes[0].value;
+    } else {
+      typeValue = "";
+    }
+    setFormData({
+      name: room.name || "",
+      branchId: room.branchId ? String(room.branchId) : "",
+      type: typeValue,
+      capacity: room.capacity || ""
+    });
+    setEditDialog({ open: true, room: { ...room, type: typeValue } });
+  };
+
   return (
     <div className="p-4 md:p-8">
       <div className="flex flex-col md:flex-row items-center justify-between mb-6">
@@ -197,51 +255,15 @@ const Labs = () => {
                   أدخل بيانات القاعة أو المعمل الجديد. سيتم إنشاء كود فريد تلقائياً.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit}>
-                <div className="grid gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">اسم القاعة/المعمل *</Label>
-                    <Input 
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="مثال: معمل الكمبيوتر 1"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="branchId">الفرع *</Label>
-                    <Select 
-                      name="branchId"
-                      value={formData.branchId}
-                      onValueChange={(value) => handleSelectChange("branchId", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر الفرع" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {branches.map((branch) => (
-                          <SelectItem key={branch.id} value={branch.id}>
-                            {branch.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    إلغاء
-                  </Button>
-                  <Button type="submit">حفظ</Button>
-                </DialogFooter>
-              </form>
+              <RoomForm
+                values={formData}
+                branches={branches}
+                roomTypes={roomTypes}
+                onChange={handleSelectChange}
+                onSubmit={handleSubmit}
+                submitLabel="حفظ"
+                onCancel={() => setIsDialogOpen(false)}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -257,32 +279,11 @@ const Labs = () => {
         <CardContent>
           {filteredLabs.length > 0 ? (
             <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>الاسم</TableHead>
-                    <TableHead>الفرع</TableHead>
-                    <TableHead className="text-right">الإجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLabs.map((lab) => (
-  <TableRow key={lab.id}>
-    <TableCell className="font-medium">{lab.name}</TableCell>
-    <TableCell>{getBranchName(lab.branchId)}</TableCell>
-    <TableCell className="text-right">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => handleDelete(lab.id)}
-      >
-        <Trash className="h-4 w-4 text-destructive" />
-      </Button>
-    </TableCell>
-  </TableRow>
-))}
-                </TableBody>
-              </Table>
+              <RoomsTable
+                rooms={roomsTableData}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+              />
             </div>
           ) : (
             <div className="py-12 text-center text-muted-foreground">
@@ -291,6 +292,27 @@ const Labs = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog تعديل القاعة */}
+      <Dialog open={editDialog.open} onOpenChange={open => setEditDialog({ open, room: open ? editDialog.room : null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>تعديل بيانات القاعة</DialogTitle>
+            <DialogDescription>
+              يمكنك تعديل بيانات القاعة ثم الضغط على حفظ التعديلات.
+            </DialogDescription>
+          </DialogHeader>
+          <RoomForm
+            values={editDialog.room || { name: '', branchId: '', type: '', capacity: '' }}
+            branches={branches}
+            roomTypes={roomTypes}
+            onChange={handleSelectChange}
+            onSubmit={handleSubmit}
+            submitLabel="حفظ التعديلات"
+            onCancel={() => setEditDialog({ open: false, room: null })}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

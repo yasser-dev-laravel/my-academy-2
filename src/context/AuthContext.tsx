@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { loginUser, getUser } from "@/utils/api/users";
-type Role = "admin" | "employee" | "teacher" | "student";
+// type Role = "admin" | "employee" | "teacher" | "student";
 import { UserDto } from "@/utils/api/users";
 // interface User {
 //   id: number;

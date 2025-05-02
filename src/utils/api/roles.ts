@@ -1,6 +1,7 @@
-import axios from "axios";
+import axios from "./axios";
+import { API_BASE_URL } from "./constants";
+const BASE_URL = `${API_BASE_URL}/Roles`;
 
-const BASE_URL = "/api/Roles";
 
 export interface CreateRoleDto {
   name: string;

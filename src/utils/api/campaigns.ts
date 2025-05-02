@@ -1,7 +1,7 @@
-import axios from "axios";
+import axios from "./axios";
 
-const BASE_URL = "/api/Campaigns";
-
+import { API_BASE_URL } from "./constants";
+const BASE_URL = `${API_BASE_URL}/Campaigns`;
 export interface CreateCampaignDto {
   name?: string | null;
   description?: string | null;

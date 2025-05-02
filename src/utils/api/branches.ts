@@ -1,6 +1,7 @@
-import axios from "@/utils/api/axios";
+import axios from "./axios";
+import { API_BASE_URL } from "./constants";
 
-const BASE_URL = "/api/Branches";
+const BASE_URL = `${API_BASE_URL}/Branches`;
 
 export interface CreateBranchDto {
   name?: string | null;

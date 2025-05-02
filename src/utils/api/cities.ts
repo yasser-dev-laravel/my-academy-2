@@ -1,6 +1,7 @@
-import axios from "axios";
+import axios from "./axios";
+import { API_BASE_URL } from "./constants";
 
-const BASE_URL = "/api/Cities";
+const BASE_URL = `${API_BASE_URL}/Cityes`;
 
 export interface CreateCityDto {
   name?: string | null;
@@ -16,7 +17,7 @@ export interface CityDto {
   name?: string | null;
 }
 
-export interface CityDtoPaginationResult {
+export interface CitiesPaginationResult {
   data?: CityDto[] | null;
   total: number;
 }
@@ -50,8 +51,8 @@ export const getCitiesPaginated = async (params: {
   IsDesc?: boolean;
   FreeText?: string;
   OnlyDeleted?: boolean;
-}): Promise<CityDtoPaginationResult> => {
-  const res = await axios.get<CityDtoPaginationResult>(`${BASE_URL}/pagination`, { params });
+}): Promise<CitiesPaginationResult> => {
+  const res = await axios.get<CitiesPaginationResult>(`${BASE_URL}/pagination`, { params });
   const { data, total } = res.data || {};
   return {
     data: data ?? [],

@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios from "./axios";
+import { API_BASE_URL } from "./constants";
 
 // CreateAreaDto type
 export interface CreateAreaDto {
@@ -29,29 +30,33 @@ export interface AreaDtoPaginationResult {
 
   // TODO: Fill according to your schema
 
+const BASE_URL = `${API_BASE_URL}/Areaes`;
 
-const BASE_URL = "/api/Areaes";
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export const createArea = async (data: CreateAreaDto): Promise<number> => {
-  const res = await axios.post<number>(`${BASE_URL}`, data);
+  const res = await axios.post<number>(`${BASE_URL}`, data, { headers: getAuthHeaders() });
   return res.data;
 };
 
 export const deleteArea = async (id: number): Promise<void> => {
-  await axios.delete(`${BASE_URL}/${id}`);
+  await axios.delete(`${BASE_URL}/${id}`, { headers: getAuthHeaders() });
 };
 
 export const updateArea = async (id: number, data: UpdateAreaDto): Promise<void> => {
-  await axios.put(`${BASE_URL}/${id}`, data);
+  await axios.put(`${BASE_URL}/${id}`, data, { headers: getAuthHeaders() });
 };
 
 export const getArea = async (id: number): Promise<any> => {
-  const res = await axios.get<AreaDto>(`${BASE_URL}/${id}`);
+  const res = await axios.get<AreaDto>(`${BASE_URL}/${id}`, { headers: getAuthHeaders() });
   return res.data;
 };
 
 export const restoreArea = async (id: number): Promise<void> => {
-  await axios.put(`${BASE_URL}/restore/${id}`);
+  await axios.put(`${BASE_URL}/restore/${id}`, {}, { headers: getAuthHeaders() });
 };
 
 export const getAreasPaginated = async (params: {
@@ -62,6 +67,6 @@ export const getAreasPaginated = async (params: {
   FreeText?: string;
   OnlyDeleted?: boolean;
 }): Promise<AreaDtoPaginationResult> => {
-  const res = await axios.get<AreaDtoPaginationResult>(`${BASE_URL}/pagination`, { params });
+  const res = await axios.get<AreaDtoPaginationResult>(`${BASE_URL}/pagination`, { params, headers: getAuthHeaders() });
   return res.data;
 };

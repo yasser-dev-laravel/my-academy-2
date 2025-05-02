@@ -1,6 +1,7 @@
-import axios from "axios";
+import axios from "./axios";
+import { API_BASE_URL } from "./constants";
+const BASE_URL = `${API_BASE_URL}/Sessions`;
 
-const BASE_URL = "/api/Sessions";
 
 export interface CreateSessionDto {
   groupId: number;

@@ -192,6 +192,7 @@ export const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }: SidebarProps) =
   const canSeeCampaigns = user.roleIds.some(id => [1,2].includes(id));
   const canSeeBooking = user.roleIds.some(id => [1,2,3,4].includes(id));
   const canSeeSettings = user.roleIds.some(id => [1].includes(id));
+  const canSeeBranches = user.roleIds.some(id => [1,2].includes(id)); // مثال: 1=admin, 2=موظف
 
   useEffect(() => {
     const handleResize = () => {
