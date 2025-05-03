@@ -13,7 +13,7 @@ import Branches from "./pages/branches";
 import Rooms from "./pages/rooms";
 import CategoriesPage from "./pages/categories";
 import Courses from "./pages/courses";
-import Instructors from "./pages/Instructors";
+import Instructors from "./pages/instructors";
 import NotFound from "./pages/NotFound";
 import LoginForm from "./components/auth/LoginForm";
 import Messaging from "./pages/Messaging";

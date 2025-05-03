@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +7,7 @@ import { useState, useEffect as useEffectReact } from "react";
 import { getBranchesPaginated } from "@/utils/api/branches";
 import { getStudentsPaginated } from "@/utils/api/students";
 import { getCategoriesPaginated } from "@/utils/api/categories";
+import { getCoursesPaginated } from "@/utils/api/courses";
 import { Users, BookOpen, BookText, Building, FolderOpen } from "lucide-react";
 
 const DashboardCard = ({ 
@@ -54,9 +54,24 @@ const Index = () => {
 
   // حالة الكورسات
   const [courses, setCourses] = useState<any[]>([]);
-  useEffect(() => {
-    const storedCourses = localStorage.getItem("latin_academy_courses");
-    setCourses(storedCourses ? JSON.parse(storedCourses) : []);
+  const [coursesLoading, setCoursesLoading] = useState<boolean>(true);
+  const [coursesError, setCoursesError] = useState<string>("");
+
+  useEffectReact(() => {
+    async function fetchCourses() {
+      setCoursesLoading(true);
+      setCoursesError("");
+      try {
+        const res = await getCoursesPaginated({ Page: 1, Limit: 1000 });
+        setCourses(res.data || []);
+      } catch (error) {
+        setCoursesError("تعذر جلب بيانات الكورسات");
+        setCourses([]);
+      } finally {
+        setCoursesLoading(false);
+      }
+    }
+    fetchCourses();
   }, []);
 
   useEffectReact(() => {
@@ -179,7 +194,7 @@ const Index = () => {
               <CardContent>
                 {courses.length > 0 ? (
                   <div className="space-y-2">
-                    {courses.map((course: any, index: number) => (
+                    {courses.map((course: any, index: number) => ( index < 10 && (
                       <div key={index} className="flex items-center justify-between border-b pb-2">
                         <div className="flex items-center gap-2">
                           <BookText className="h-5 w-5 text-primary" />
@@ -194,7 +209,7 @@ const Index = () => {
                           {course.totalDuration} ساعة | {course.totalPrice} جنيه
                         </div>
                       </div>
-                    ))}
+                    )))}
                   </div>
                 ) : (
                   <div className="py-6 text-center text-muted-foreground">
@@ -213,7 +228,7 @@ const Index = () => {
               <CardContent>
                 {branches.length > 0 ? (
                   <div className="space-y-2">
-                    {branches.map((branch: any, index: number) => (
+                    {branches.map((branch: any, index: number) => (index < 10 && (
                       <div key={index} className="flex items-center gap-2 border-b pb-2">
                         <Building className="h-5 w-5 text-primary" />
                         <div>
@@ -223,7 +238,7 @@ const Index = () => {
                           </p>
                         </div>
                       </div>
-                    ))}
+                    )))}
                   </div>
                 ) : (
                   <div className="py-6 text-center text-muted-foreground">لا توجد فروع متاحة</div>

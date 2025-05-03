@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import EmployeesTable from "./EmployeesTable";
 import EmployeeForm from "./EmployeeForm";
-import { getUsersPaginated, createUser, updateUser, deleteUser } from "@/utils/api/users";
 import { getHelpTableCity, getHelpTableSalaryType } from "@/utils/api/helpTables";
 import { getRolesPaginated } from "@/utils/api/roles";
 import { API_BASE_URL } from "@/utils/api/constants";
+import { getUsersPaginated, createUser, updateUser, deleteUser } from "@/utils/api/users";
 
 const EmployeesPage = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -18,16 +18,14 @@ const EmployeesPage = () => {
     name: "",
     email: "",
     password: "",
-    emailVerified: null,
-    image: null,
-    salaryTypeId: null,
-    salaryTypeName: null,
-    salary: 0,
+    image: "",
     phone: "",
     address: "",
     nationalId: "",
-    cityId: null,
-    education: null,
+    cityId: 0,
+    education: "",
+    salaryTypeId: 0,
+    salary: 0,
     roleIds: [],
   });
   const [cities, setCities] = useState<any[]>([]);
@@ -57,7 +55,7 @@ const EmployeesPage = () => {
       setEmployees([]);
       setCities([]);
       setSalaryTypes([]);
-      toast({ title: "خطأ في تحميل البيانات", description: "تعذر جلب بيانات المستخدمين أو القوائم المساعدة", variant: "destructive" });
+      toast({ title: "خطأ في تحميل البيانات", description: "تعذر جلب بيانات الموظفين أو القوائم المساعدة", variant: "destructive" });
     }
   };
 
@@ -77,7 +75,7 @@ const EmployeesPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.password) {
-      toast({ title: "خطأ في البيانات", description: "يرجى ملء جميع الحقول المطلوبة بما في ذلك كلمة المرور", variant: "destructive" });
+      toast({ title: "خطأ في البيانات", description: "يرجى ملء جميع الحقول المطلوبة", variant: "destructive" });
       return;
     }
     try {
@@ -95,9 +93,12 @@ const EmployeesPage = () => {
         salary: formData.salary || 0,
         roleIds: formData.roleIds || [],
       };
-      console.log("[CREATE USER] Payload:", payload);
-      await createUser(payload);
-      toast({ title: "تم بنجاح", description: "تم إضافة المستخدم بنجاح" });
+      if (editDialog.open) {
+        await updateUser(editDialog.employee.id, payload);
+      } else {
+        await createUser(payload);
+      }
+      toast({ title: "تم بنجاح", description: "تم حفظ بيانات الموظف بنجاح" });
       setIsDialogOpen(false);
       setFormData({
         name: "",
@@ -114,22 +115,18 @@ const EmployeesPage = () => {
         roleIds: [],
       });
       fetchAll();
-    } catch (error: any) {
-      console.error("[USER ERROR]", error);
-      if (error.response) {
-        console.error("[SERVER RESPONSE]", error.response.data);
-      }
-      toast({ title: "خطأ في العملية", description: "تعذر حفظ بيانات المستخدم", variant: "destructive" });
+    } catch (error) {
+      toast({ title: "خطأ في العملية", description: "تعذر حفظ بيانات الموظف", variant: "destructive" });
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await deleteUser(id);
-      toast({ title: "تم بنجاح", description: "تم حذف المستخدم بنجاح" });
+      toast({ title: "تم بنجاح", description: "تم حذف الموظف بنجاح" });
       fetchAll();
     } catch (error) {
-      toast({ title: "خطأ في الحذف", description: "تعذر حذف المستخدم", variant: "destructive" });
+      toast({ title: "خطأ في الحذف", description: "تعذر حذف الموظف", variant: "destructive" });
     }
   };
 
@@ -137,17 +134,15 @@ const EmployeesPage = () => {
     setFormData({
       name: employee.name || "",
       email: employee.email || "",
-      password: "", // Reset password field
-      emailVerified: employee.emailVerified || null,
-      image: employee.image || null,
-      salaryTypeId: employee.salaryTypeId || null,
-      salaryTypeName: employee.salaryTypeName || null,
-      salary: employee.salary || 0,
+      password: "",
+      image: employee.image || "",
       phone: employee.phone || "",
       address: employee.address || "",
       nationalId: employee.nationalId || "",
-      cityId: employee.cityId || null,
-      education: employee.education || null,
+      cityId: employee.cityId || 0,
+      education: employee.education || "",
+      salaryTypeId: employee.salaryTypeId || 0,
+      salary: employee.salary || 0,
       roleIds: employee.roleIds || [],
     });
     setEditDialog({ open: true, employee });
@@ -176,11 +171,11 @@ const EmployeesPage = () => {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>{editDialog.open ? "تعديل المستخدم" : "إضافة مستخدم جديد"}</DialogTitle>
+                <DialogTitle>{editDialog.open ? "تعديل الموظف" : "إضافة موظف جديد"}</DialogTitle>
                 <DialogDescription>
                   {editDialog.open
-                    ? "يمكنك تعديل بيانات المستخدم ثم الضغط على حفظ التعديلات."
-                    : "أدخل بيانات المستخدم الجديد. اضغط حفظ عند الانتهاء."}
+                    ? "يمكنك تعديل بيانات الموظف ثم الضغط على حفظ التعديلات."
+                    : "أدخل بيانات الموظف الجديد. اضغط حفظ عند الانتهاء."}
                 </DialogDescription>
               </DialogHeader>
               <EmployeeForm
@@ -199,16 +194,14 @@ const EmployeesPage = () => {
                     name: "",
                     email: "",
                     password: "",
-                    emailVerified: null,
-                    image: null,
-                    salaryTypeId: null,
-                    salaryTypeName: null,
-                    salary: 0,
+                    image: "",
                     phone: "",
                     address: "",
                     nationalId: "",
-                    cityId: null,
-                    education: null,
+                    cityId: 0,
+                    education: "",
+                    salaryTypeId: 0,
+                    salary: 0,
                     roleIds: [],
                   });
                 }}
@@ -227,9 +220,9 @@ const EmployeesPage = () => {
       <Dialog open={editDialog.open} onOpenChange={open => setEditDialog({ open, employee: open ? editDialog.employee : null })}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>تعديل المستخدم</DialogTitle>
+            <DialogTitle>تعديل الموظف</DialogTitle>
             <DialogDescription>
-              يمكنك تعديل بيانات المستخدم ثم الضغط على حفظ التعديلات.
+              يمكنك تعديل بيانات الموظف ثم الضغط على حفظ التعديلات.
             </DialogDescription>
           </DialogHeader>
           <EmployeeForm

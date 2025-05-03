@@ -4,30 +4,43 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CoursesTable from "./CoursesTable";
 import CoursesForm from "./CoursesForm";
-import { getCoursesPaginated, createCourse, updateCourse, deleteCourse } from "@/utils/api/courses";
-import { getHelpTableCategory } from "@/utils/api/helpTables";
+import { createCourse, updateCourse, deleteCourse, getCoursesPaginated } from "@/utils/api/courses";
 import { useLanguage } from "@/context/LanguageContext";
 
 const Courses: React.FC = () => {
   const [courses, setCourses] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [levels, setLevels] = useState<any[]>([]);
-  const [formData, setFormData] = useState<any>({
-    name: "",
-    description: "",
-    categoryId: null,
-    id: null,
-    isActive: false,
-    categoryName: "",
-    applicationId: null,
+  interface CreateCourseDto {
+    name: string;
+    description: string;
+    isActive: boolean;
+    categoryId: number;
     levels: {
-      id: null,
+    
+      name: string;
+      description: string;
+      price: number;
+      sessionsCount: number;
+    }[];
+  }
+
+  const [formData, setFormData] = useState<CreateCourseDto & { categoryName: string; applicationId: number }>({
       name: "",
       description: "",
-      price: null,
-      sessionsCount: null,
-    }
-  });
+      isActive: true,
+      categoryId: 0,
+      categoryName: "",
+      applicationId: 0,
+      levels: [
+        {
+          name: "المستوي 1",
+          description: "",
+          price: 0,
+          sessionsCount: 0,
+        },
+      ],
+    });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editDialog, setEditDialog] = useState({ open: false, course: null as any });
   const { language } = useLanguage();
@@ -54,22 +67,16 @@ const Courses: React.FC = () => {
   const t = translations[language];
 
   useEffect(() => {
-    fetchAll();
+    const fetchData = async () => {
+      try {
+        const coursesRes = await getCoursesPaginated({ Page: 1, Limit: 100 });
+        setCourses(coursesRes.data || []);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+    fetchData();
   }, []);
-
-  const fetchAll = async () => {
-    try {
-      const [coursesRes, categoriesRes] = await Promise.all([
-        getCoursesPaginated({ Page: 1, Limit: 100 }),
-        getHelpTableCategory(),
-      ]);
-      console.log("[FETCH COURSES] Response:", coursesRes); // Log the response
-      setCourses(coursesRes.data || []);
-      setCategories((categoriesRes.data as any[]) || []);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -82,35 +89,43 @@ const Courses: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[SUBMIT] Form data:", formData);
     try {
       if (editDialog.open && editDialog.course) {
         await updateCourse(editDialog.course.id, formData);
       } else {
         await createCourse(formData);
       }
-      fetchAll();
+      const coursesRes = await getCoursesPaginated({ Page: 1, Limit: 100 });
+      setCourses(coursesRes.data || []);
       setIsDialogOpen(false);
       setEditDialog({ open: false, course: null });
-      setFormData({ name: "", description: "", categoryId: null, levels: [] });
+      setFormData({ name: "", description: "", isActive: true, categoryId: 0, categoryName: "", applicationId: 0, levels: [] });
     } catch (error) {
       console.error("Error saving course:", error);
     }
   };
 
   const handleEdit = (course: any) => {
+    console.log("[EDIT COURSE] Course Data:", course ,course.levels); // Log the course data
     setFormData({
-      name: course.name,
-      description: course.description,
-      categoryId: course.categoryId,
-      levels: course.levels,
-    });
+          name: course.name,
+          description: course.description,
+          isActive: course.isActive,
+          categoryId: course.categoryId,
+          categoryName: course.categoryName || "",
+          applicationId: course.applicationId || 0,
+          levels: course.levels,
+        });
     setEditDialog({ open: true, course });
+    setIsDialogOpen(true); // Ensure the dialog opens when editing
   };
 
   const handleDelete = async (id: number) => {
     try {
       await deleteCourse(id);
-      fetchAll();
+      const coursesRes = await getCoursesPaginated({ Page: 1, Limit: 100 });
+      setCourses(coursesRes.data || []);
     } catch (error) {
       console.error("Error deleting course:", error);
     }
@@ -144,7 +159,7 @@ const Courses: React.FC = () => {
               onCancel={() => {
                 setIsDialogOpen(false);
                 setEditDialog({ open: false, course: null });
-                setFormData({ name: "", description: "", categoryId: null, levels: [] });
+                setFormData({ name: "", description: "", isActive: true, categoryId: 0, categoryName: "", applicationId: 0, levels: [] });
               }}
             />
           </DialogContent>

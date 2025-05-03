@@ -1,6 +1,6 @@
 import axios from "./axios";
 import { API_BASE_URL } from "./constants";
-const BASE_URL = `${API_BASE_URL}/G`;
+const BASE_URL = `${API_BASE_URL}/Groups`;
 
 
 export interface CreateGroupDto {

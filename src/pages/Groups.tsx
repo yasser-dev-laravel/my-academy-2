@@ -9,6 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { useNavigate } from "react-router-dom";
 import { Eye, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { getCoursesPaginated } from "@/utils/api/courses";
+import { getBranchesPaginated } from "@/utils/api/branches";
+import { getHelpTableRoom } from "@/utils/api/helpTables";
+import { getInstructorsPaginated } from "@/utils/api/instructors";
+import { getStudentsPaginated } from "@/utils/api/students";
+import { getGroupsPaginated } from "@/utils/api/groups";
 
 interface Instructor {
   id: string;
@@ -47,7 +53,7 @@ export default function Groups() {
   const [courses, setCourses] = useState< any[]>([]);
   const [levels, setLevels] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
-  const [labs, setLabs] = useState<any[]>([]);
+  const [rooms, setRooms] = useState<any[]>([]);
   const [instructors, setInstructors] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -80,18 +86,56 @@ export default function Groups() {
   const { toast } = useToast();
 
   useEffect(() => {
-    
+    const fetchData = async () => {
+      try {
+        const coursesRes = await getCoursesPaginated({ Page: 1, Limit: 100 });
+        setCourses(coursesRes.data || []);
+
+        const branchesRes = await getBranchesPaginated({ Page: 1, Limit: 100 });
+        setBranches(branchesRes.data || []);
+
+        const roomsRes = await getHelpTableRoom();
+        setRooms((roomsRes.data as any[]) || []);
+
+        const instructorsRes = await getInstructorsPaginated({ Page: 1, Limit: 100 });
+        setInstructors(instructorsRes.data || []);
+
+        const studentsRes = await getStudentsPaginated({ Page: 1, Limit: 100 });
+        setStudents(studentsRes.data || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const groupsRes = await getGroupsPaginated({ Page: 1, Limit: 100 });
+        setGroups(groupsRes.data || []);
+      } catch (error) {
+        console.error("Error fetching groups:", error);
+      }
+    };
+
+    fetchGroups();
   }, []);
 
   useEffect(() => {
     // تصفية الطلاب حسب البحث
-    if (searchStudent.trim() === "") setFilteredStudents(students);
-    else {
-      setFilteredStudents(students.filter(s =>
-        s.name.includes(searchStudent) ||
-        s.mobile.includes(searchStudent) ||
-        (s.applicationNumber && s.applicationNumber.includes(searchStudent))
-      ));
+    if (searchStudent.trim() === "") {
+      setFilteredStudents(students);
+    } else {
+      const lowerCaseSearch = searchStudent.trim().toLowerCase();
+      setFilteredStudents(
+        students.filter((s) =>
+          s.name.toLowerCase().includes(lowerCaseSearch) ||
+          s.mobile.toLowerCase().includes(lowerCaseSearch) ||
+          (s.applicationNumber && s.applicationNumber.toLowerCase().includes(lowerCaseSearch))
+        )
+      );
     }
   }, [searchStudent, students]);
 
@@ -209,7 +253,7 @@ export default function Groups() {
         </CardContent>
       </Card>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[80vh] max-w-[98vw] overflow-auto">
+        <DialogContent className="max-h-[70vh] max-w-[80vw] overflow-auto">
           <DialogHeader>
             <DialogTitle>إضافة مجموعة</DialogTitle>
           </DialogHeader>
@@ -259,7 +303,7 @@ export default function Groups() {
               <Select value={newGroup.labId} onValueChange={v => setNewGroup((g: any) => ({ ...g, labId: v }))}>
                 <SelectTrigger className="w-full"><SelectValue placeholder="اختر القاعة" /></SelectTrigger>
                 <SelectContent>
-                  {labs.filter(l => l.branchId === newGroup.branchId).map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+                  {rooms.filter(l => l.branchId === newGroup.branchId).map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -380,7 +424,7 @@ export default function Groups() {
               <div><b>الكود:</b> {detailsDialog.group.code}</div>
               <div><b>الاسم:</b> {detailsDialog.group.name}</div>
               <div><b>الفرع:</b> {branches.find(b => b.id === detailsDialog.group.branchId)?.name}</div>
-              <div><b>القاعة:</b> {labs.find(l => l.id === detailsDialog.group.labId)?.name}</div>
+              <div><b>القاعة:</b> {rooms.find(l => l.id === detailsDialog.group.labId)?.name}</div>
               <div><b>المدرس:</b> {instructors.find(i => i.id === detailsDialog.group.instructorId)?.name}</div>
               <div><b>الدورة:</b> {courses.find(c => c.id === detailsDialog.group.courseId)?.name}</div>
               <div><b>المستوى:</b> {levels.find(l => l.id === detailsDialog.group.levelId)?.levelNumber}</div>
@@ -537,7 +581,7 @@ export default function Groups() {
                   <TableCell>{group.code}</TableCell>
                   <TableCell>{group.name}</TableCell>
                   <TableCell>{branches.find(b => b.id === group.branchId)?.name}</TableCell>
-                  <TableCell>{labs.find(l => l.id === group.labId)?.name}</TableCell>
+                  <TableCell>{rooms.find(l => l.id === group.labId)?.name}</TableCell>
                   <TableCell>{instructors.find(i => i.id === group.instructorId)?.name}</TableCell>
                   <TableCell>{group.startDate}</TableCell>
                   <TableCell>{group.startTime}</TableCell>

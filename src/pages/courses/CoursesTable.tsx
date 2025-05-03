@@ -35,77 +35,79 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses, onEdit, onDelete }
         <TableHead>الوصف</TableHead>
         <TableHead>القسم</TableHead>
         <TableHead>الحالة</TableHead>
-        {/* <TableHead>المستويات</TableHead> */}
         <TableHead>الإجراءات</TableHead>
       </TableRow>
     </TableHeader>
     <TableBody>
-      {courses.map((course) => (
-        <React.Fragment key={course.id}>
-          <TableRow>
-            <TableCell>{course.name}</TableCell>
-            <TableCell>{course.description}</TableCell>
-            <TableCell>{course.categoryName}</TableCell>
-            <TableCell>{course.isActive ? "نعم" : "لا"}</TableCell>
-            {/* <TableCell>
-              {course.levels.length > 0
-                ? `${course.levels.length} مستويات`
-                : "لا توجد مستويات"}
-            </TableCell> */}
-            <TableCell className="text-right flex gap-2 justify-end">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onEdit(course)}
-                title="تعديل الكورس"
-              >
-                <Edit className="h-4 w-4 text-primary" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onDelete(course.id)}
-                title="حذف الكورس"
-              >
-                <Trash className="h-4 w-4 text-destructive" />
-              </Button>
-            </TableCell>
-          </TableRow>
-          {course.levels.length > 0 && (
+      {courses?.length > 0 ? (
+        courses.map((course) => (
+          <React.Fragment key={course.id}>
             <TableRow>
-              <TableCell colSpan={6} className="p-0">
-                <Accordion type="single" collapsible>
-                  <AccordionItem value={`course-${course.id}`}>
-                    <AccordionTrigger className="bg-gray-100 text-gray-800">{`${course.levels.length} مستويات`}</AccordionTrigger>
-                    <AccordionContent className="bg-gray-50">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>اسم المستوى</TableHead>
-                            <TableHead>الوصف</TableHead>
-                            <TableHead>السعر</TableHead>
-                            <TableHead>عدد المحاضرات</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {course.levels.map((level) => (
-                            <TableRow key={level.id}>
-                              <TableCell>{level.name}</TableCell>
-                              <TableCell>{level.description}</TableCell>
-                              <TableCell>{level.price} جنيها</TableCell>
-                              <TableCell>{level.sessionsCount}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+              <TableCell>{course.name}</TableCell>
+              <TableCell>{course.description}</TableCell>
+              <TableCell>{course.categoryName}</TableCell>
+              <TableCell>{course.isActive ? "نعم" : "لا"}</TableCell>
+              <TableCell className="text-right flex gap-2 justify-end">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEdit(course)}
+                  title="تعديل الكورس"
+                >
+                  <Edit className="h-4 w-4 text-primary" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDelete(course.id)}
+                  title="حذف الكورس"
+                >
+                  <Trash className="h-4 w-4 text-destructive" />
+                </Button>
               </TableCell>
             </TableRow>
-          )}
-        </React.Fragment>
-      ))}
+            {course.levels.length > 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="p-0">
+                  <Accordion type="single" collapsible>
+                    <AccordionItem value={`course-${course.id}`}>
+                      <AccordionTrigger className="bg-gray-100 text-gray-800">{`${course.levels.length} مستويات`}</AccordionTrigger>
+                      <AccordionContent className="bg-gray-50">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>اسم المستوى</TableHead>
+                              <TableHead>الوصف</TableHead>
+                              <TableHead>السعر</TableHead>
+                              <TableHead>عدد المحاضرات</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {course.levels.map((level) => (
+                              <TableRow key={level.id}>
+                                <TableCell>{level.name}</TableCell>
+                                <TableCell>{level.description}</TableCell>
+                                <TableCell>{level.price} جنيها</TableCell>
+                                <TableCell>{level.sessionsCount}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </TableCell>
+              </TableRow>
+            )}
+          </React.Fragment>
+        ))
+      ) : (
+        <TableRow>
+          <TableCell colSpan={5} className="text-center text-muted-foreground">
+            لا توجد بيانات لعرضها
+          </TableCell>
+        </TableRow>
+      )}
     </TableBody>
   </Table>
 );

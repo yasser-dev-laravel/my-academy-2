@@ -13,7 +13,7 @@ interface CoursesFormProps {
     categoryName: string;
     applicationId: number;
     levels: {
-      id: number;
+    
       name: string;
       description: string;
       price: number;
@@ -21,9 +21,9 @@ interface CoursesFormProps {
     }[];
   };
   categories: { id: number; name: string }[];
-  levels: { id: number; name: string }[];
+  levels: {  name: string; description: string; price: number; sessionsCount: number }[];
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  onSelectChange: (name: string, value: string | number | number[]) => void;
+  onSelectChange: (name: string, value: string | number | number[] | { name: string; description: string; price: number; sessionsCount: number }[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   submitLabel?: string;
   onCancel?: () => void;
@@ -39,6 +39,8 @@ const CoursesForm: React.FC<CoursesFormProps> = ({
   submitLabel = "Save",
   onCancel,
 }) => {
+  console.log("[CoursesForm] Values passed to the form:", values); // Log the values passed to the form
+
   const [courseFormData, setCourseFormData] = React.useState({
     name: "",
     description: "",
@@ -62,21 +64,30 @@ const CoursesForm: React.FC<CoursesFormProps> = ({
 
   const handleAddLevelInCourse = (): void => {
     setCourseFormData((prevState) => {
-      const updatedLevels = [
-        ...prevState.levels,
-        {
-          id: prevState.levels.length + 1,
-          name: "",
-          description: "",
-          price: 0,
-          sessionsCount: 0,
-        },
-      ];
-      console.log("[ADD LEVEL] Updated Levels:", updatedLevels); // Log the updated levels
+      const lastLevel = prevState.levels[prevState.levels.length - 1] || {
+      
+        name: "المستوي 1",
+        description: "",
+        price: 0,
+        sessionsCount: 0,
+      };
+      const newLevel = {
+        name: `المستوي ${prevState.levels.length}`,
+        description: "",
+        price: lastLevel.price,
+        sessionsCount: lastLevel.sessionsCount,
+      };
       return {
         ...prevState,
-        levels: updatedLevels,
+        levels: [...prevState.levels, newLevel],
       };
+    });
+  };
+
+  const handleRemoveLevel = (idx: number): void => {
+    setCourseFormData((prevState) => {
+      const updatedLevels = prevState.levels.filter((_, index) => index !== idx);
+      return { ...prevState, levels: updatedLevels };
     });
   };
 
@@ -112,77 +123,139 @@ const CoursesForm: React.FC<CoursesFormProps> = ({
         </div>
         <div className="space-y-2">
           <Label htmlFor="levels">Levels</Label>
-            <div className="space-y-1">
-            <div className="flex flex-row gap-2 mb-1 px-2">
-                <div className="w-14 text-xs font-semibold text-muted-foreground text-center">الكود</div>
-                <div className="w-24 text-xs font-semibold text-muted-foreground text-center">الاسم</div>
-                <div className="w-20 text-xs font-semibold text-muted-foreground text-center">الوصف</div>
-                <div className="w-20 text-xs font-semibold text-muted-foreground text-center">السعر</div>
-                <div className="w-20 text-xs font-semibold text-muted-foreground text-center">عدد المحاضرات</div>
+          <div>
+            <div className="flex flex-row gap-2 mb-1 px-2 border border-2 items-center flex-nowrap relative">
+              <div className="w-14 text-xs font-semibold text-muted-foreground text-center">مسلسل</div>
+              <div className="w-24 text-xs font-semibold text-muted-foreground text-center">الاسم</div>
+              <div className="w-20 text-xs font-semibold text-muted-foreground text-center">الوصف</div>
+              <div className="w-20 text-xs font-semibold text-muted-foreground text-center">السعر</div>
+              <div className="w-20 text-xs font-semibold text-muted-foreground text-center">عدد المحاضرات</div>
             </div>
-            {(levels || []).map((level: any, idx: number, arr: any[]) => (
-                <div key={idx} className="  border flex flex-row gap-2 items-end flex-nowrap relative mb-2">
+            <div>
+                 {(values.levels || []).map((level: any, idx: number, arr: any[]) => (
+              <div key={idx} className="border border-2 flex flex-row gap-2 items-end flex-nowrap relative mb-2">
                 <Input
-                    name="Code"
-                    value={level.id || idx + 1}
-                    onChange={(e) => handleCourseLevelChange(idx, "id", e.target.value)}
-                    className="w-14 text-center"
-                    placeholder=""
+                  name={`levels[${idx}].serial`}
+                  value={idx + 1}
+                  readOnly
+                  className="w-14 text-center"
+                  placeholder=""
                 />
                 <Input
-                    name="name"
-                    value={level.name}
-                    onChange={(e) => handleCourseLevelChange(idx, "name", e.target.value)}
-                    className="w-24 text-center"
-                    placeholder=""
+                  name={`levels[${idx}].name`}
+                  value={level?.name || ""}
+                  onChange={(e) => {
+                    const updatedLevels = values.levels.map((lvl, i) =>
+                      i === idx ? { ...lvl, name: e.target.value } : lvl
+                    ); // Ensure immutability when updating levels
+                    onChange({
+                      target: {
+                        name: "levels",
+                        value: updatedLevels,
+                      },
+                    } as unknown as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  className="w-24 text-center"
+                  placeholder="اسم المستوى"
                 />
                 <Input
-                    name="description"
-                    type="text"
-                    value={level.description || ""}
-                    onChange={(e) => handleCourseLevelChange(idx, "description", e.target.value)}
-                    className="w-44 text-center"
-                    placeholder=""
+                  name={`levels[${idx}].description`}
+                  type="text"
+                  value={level.description || ""}
+                  onChange={(e) => {
+                    const updatedLevels = values.levels.map((lvl, i) =>
+                      i === idx ? { ...lvl, description: e.target.value } : lvl
+                    ); // Ensure immutability when updating levels
+                    onChange({
+                      target: {
+                        name: "levels",
+                        value: updatedLevels,
+                      },
+                    } as unknown as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  className="w-44 text-center"
+                  // placeholder="الوصف"
                 />
                 <Input
-                name="price"
-                type="number"
-                value={level.price || ""}
-                onChange={(e) => handleCourseLevelChange(idx, "price", e.target.value)}
-                className="w-20 text-center"
-                placeholder=""
+                  name={`levels[${idx}].price`}
+                  type="number"
+                  value={level.price !== undefined ? level.price : 0} // Ensure price is a valid number
+                  onChange={(e) => {
+                    const updatedLevels = values.levels.map((lvl, i) =>
+                      i === idx ? { ...lvl, price: Number(e.target.value) } : lvl
+                    ); // Ensure immutability when updating levels
+                    onChange({
+                      target: {
+                        name: "levels",
+                        value: updatedLevels,
+                      },
+                    } as unknown as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  className="w-20 text-center"
+                  // placeholder="السعر"
                 />
                 <Input
-                name="sessionsCount"
-                type="number"
-                value={level.sessionsCount || ""}
-                onChange={(e) => handleCourseLevelChange(idx, "sessionsCount", e.target.value)}
-                className="w-20 text-center"
-                placeholder=""
+                  name={`levels[${idx}].sessionsCount`}
+                  type="number"
+                  value={level.sessionsCount || ""}
+                  onChange={(e) => {
+                    const updatedLevels = values.levels.map((lvl, i) =>
+                      i === idx ? { ...lvl, sessionsCount: Number(e.target.value) } : lvl
+                    ); // Ensure immutability when updating levels
+                    onChange({
+                      target: {
+                        name: "levels",
+                        value: updatedLevels,
+                      },
+                    } as unknown as React.ChangeEvent<HTMLInputElement>);
+                  }}
+                  className="w-28 text-center"
+                  // placeholder="عدد المحاضرات"
                 />
 
-                {arr.length > 1 && idx === arr.length - 1 && (
-                    <Button
+                {idx === arr.length - 1 && arr.length > 1 && (
+                  <Button
                     type="button"
                     variant="destructive"
                     size="icon"
                     className="ml-1 w-8 h-8 flex items-center justify-center"
                     title="حذف المستوى الأخير"
                     onClick={() => {
-                        const updatedLevels = arr.slice(0, -1);
-                        setCourseFormData({ ...courseFormData, levels: updatedLevels });
+                      const updatedLevels = arr.slice(0, -1);
+                      onSelectChange("levels", updatedLevels);
                     }}
-                    >
+                  >
                     ×
-                    </Button>
+                  </Button>
                 )}
-                </div>
+              </div>
             ))}
-            <Button type="button" variant="outline" onClick={handleAddLevelInCourse}>
-                إضافة مستوى جديد
-            </Button>
             </div>
-            
+         
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const lastLevel = values.levels[values.levels.length - 1] || {
+               
+                  name: "المستوي 1",
+                  description: "",
+                  price: 0,
+                  sessionsCount: 0,
+                };
+                const newLevel = {
+                  
+                  name: `المستوي ${values.levels.length}`,
+                  description: "",
+                  price: lastLevel.price,
+                  sessionsCount: lastLevel.sessionsCount,
+                };
+                onSelectChange("levels", [...(values.levels || []), newLevel]);
+              }}
+            >
+              إضافة مستوى جديد
+            </Button>
+          </div>
         </div>
       </div>
       <div className="flex justify-end gap-2">
