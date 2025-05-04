@@ -14,7 +14,7 @@ import { getBranchesPaginated } from "@/utils/api/branches";
 import { getHelpTableRoom } from "@/utils/api/helpTables";
 import { getInstructorsPaginated } from "@/utils/api/instructors";
 import { getStudentsPaginated } from "@/utils/api/students";
-import { getGroupsPaginated } from "@/utils/api/groups";
+import { getGroups } from "@/utils/api/groups";
 // import { getLevelsPaginated } from "@/utils/api/levels"; // Import the API function
 
 interface Instructor {
@@ -127,7 +127,7 @@ export default function Groups() {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const groupsRes = await getGroupsPaginated({ Page: 1, Limit: 100 });
+        const groupsRes = await getGroups();
         setGroups(groupsRes.data || []);
       } catch (error) {
         console.error("Error fetching groups:", error);

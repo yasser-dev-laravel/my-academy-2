@@ -21,7 +21,7 @@ import Campaigns from "./pages/Campaigns";
 import Leads from "./pages/Leads";
 import Students from "./pages/Students";
 import Booking from "./pages/Booking";
-import Groups from "./pages/Groups";
+import Groups from "./pages/groups";
 import Attendance from "./pages/Attendance";
 import Settings from "./pages/Settings";
 import Roles from "./pages/Roles";
