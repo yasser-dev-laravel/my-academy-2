@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import InstructorsTable from "./InstructorsTable";
 import InstructorForm from "./InstructorForm";
-import { getInstructorsPaginated, createInstructor, updateInstructor, deleteInstructor } from "@/utils/api/instructors";
+import { getInstructorsPaginated, createInstructor, updateInstructor, deleteInstructor, getCities, getSalaryTypes, getCourses } from "@/utils/api/instructors";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 
 const InstructorsPage = () => {
   const [instructors, setInstructors] = useState<any[]>([]);
@@ -26,8 +27,31 @@ const InstructorsPage = () => {
   const [editDialog, setEditDialog] = useState({ open: false, instructor: null as any });
   const { toast } = useToast();
 
+  const [cities, setCities] = useState<{ id: number; name: string }[]>([]);
+  const [salaryTypes, setSalaryTypes] = useState<{ id: number; type: string }[]>([]);
+  const [courses, setCourses] = useState<{ id: number; title: string }[]>([]);
+
   useEffect(() => {
     fetchAll();
+  }, []);
+
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const [cities, salaryTypes, courses] = await Promise.all([
+          getCities(),
+          getSalaryTypes(),
+          getCourses(),
+        ]);
+        setCities(cities);
+        setSalaryTypes(salaryTypes);
+        setCourses(courses);
+      } catch (error) {
+        toast({ title: "خطأ", description: "فشل في جلب بيانات القوائم المنسدلة", variant: "destructive" });
+      }
+    };
+
+    fetchDropdownData();
   }, []);
 
   const fetchAll = async () => {
@@ -126,7 +150,7 @@ const InstructorsPage = () => {
                 إضافة محاضر
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editDialog.open ? "تعديل المحاضر" : "إضافة محاضر جديد"}</DialogTitle>
                 <DialogDescription>
@@ -135,27 +159,106 @@ const InstructorsPage = () => {
                     : "أدخل بيانات المحاضر الجديد. اضغط حفظ عند الانتهاء."}
                 </DialogDescription>
               </DialogHeader>
-              <InstructorForm
-                values={formData}
-                onChange={handleChange}
-                onSubmit={handleSubmit}
-                submitLabel={editDialog.open ? "حفظ التعديلات" : "حفظ"}
-                onCancel={() => {
-                  setIsDialogOpen(false);
-                  setEditDialog({ open: false, instructor: null });
-                  setFormData({
-                    name: "",
-                    email: "",
-                    phone: "",
-                    address: "",
-                    nationalId: "",
-                    cityId: 0,
-                    salary: 0,
-                    salaryTypeId: 0,
-                    coursesIds: [],
-                  });
-                }}
-              />
+              <form onSubmit={handleSubmit}>
+                <label htmlFor="name">الاسم</label>
+                <Input
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+                <label htmlFor="email">البريد الإلكتروني</label>
+                <Input
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+                <label htmlFor="phone">رقم الهاتف</label>
+                <Input
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
+                <label htmlFor="address">العنوان</label>
+                <Input
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                />
+                <label htmlFor="nationalId">الرقم الوطني</label>
+                <Input
+                  name="nationalId"
+                  value={formData.nationalId}
+                  onChange={handleChange}
+                />
+
+                {/* Dropdown for City */}
+                <label htmlFor="cityId">المدينة</label>
+                <Select
+                  value={formData.cityId}
+                  onValueChange={(value) => setFormData({ ...formData, cityId: Number(value) })}
+                >
+                  <SelectTrigger>اختر المدينة</SelectTrigger>
+                  <SelectContent>
+                    {cities.map((city) => (
+                      <SelectItem key={city.id} value={String(city.id)}>{city.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Dropdown for Salary Type */}
+                <label htmlFor="salaryTypeId">نوع الراتب</label>
+                <Select
+                  value={formData.salaryTypeId}
+                  onValueChange={(value) => setFormData({ ...formData, salaryTypeId: Number(value) })}
+                >
+                  <SelectTrigger>اختر نوع الراتب</SelectTrigger>
+                  <SelectContent>
+                    {salaryTypes.map((type) => (
+                      <SelectItem key={type.id} value={String(type.id)}>{type.type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Dropdown for Courses */}
+                <label htmlFor="coursesIds">الدورات</label>
+                <Select
+                  value={formData.coursesIds.length > 0 ? String(formData.coursesIds[0]) : ""}
+                  onValueChange={(value) => setFormData({ 
+                    ...formData, 
+                    coursesIds: value ? [Number(value)] : [] 
+                  })}
+                >
+                  <SelectTrigger>اختر دورة</SelectTrigger>
+                  <SelectContent>
+                    {courses.map((course) => (
+                      <SelectItem key={course.id} value={String(course.id)}>{course.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="mt-2">
+                  {formData.coursesIds.map((id) => (
+                    <span key={id} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2">
+                      {courses.find((course) => course.id === id)?.title || "Unknown"}
+                      <button
+                        type="button"
+                        className="ml-2 text-red-500"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            coursesIds: formData.coursesIds.filter((courseId) => courseId !== id),
+                          })
+                        }
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+                </div>
+
+                <Button type="submit">{editDialog.open ? "حفظ التعديلات" : "حفظ"}</Button>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
@@ -168,20 +271,109 @@ const InstructorsPage = () => {
         />
       </div>
       <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, instructor: open ? editDialog.instructor : null })}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>تعديل المحاضر</DialogTitle>
             <DialogDescription>
               يمكنك تعديل بيانات المحاضر ثم الضغط على حفظ التعديلات.
             </DialogDescription>
           </DialogHeader>
-          <InstructorForm
-            values={formData}
-            onChange={handleChange}
-            onSubmit={handleSubmit}
-            submitLabel="حفظ التعديلات"
-            onCancel={() => setEditDialog({ open: false, instructor: null })}
-          />
+          <form onSubmit={handleSubmit}>
+            <label htmlFor="name">الاسم</label>
+            <Input
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+            <label htmlFor="email">البريد الإلكتروني</label>
+            <Input
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+            <label htmlFor="phone">رقم الهاتف</label>
+            <Input
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+            />
+            <label htmlFor="address">العنوان</label>
+            <Input
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+            />
+            <label htmlFor="nationalId">الرقم الوطني</label>
+            <Input
+              name="nationalId"
+              value={formData.nationalId}
+              onChange={handleChange}
+            />
+
+            {/* Dropdown for City */}
+            <label htmlFor="cityId">المدينة</label>
+            <Select
+              value={formData.cityId}
+              onValueChange={(value) => setFormData({ ...formData, cityId: Number(value) })}
+            >
+              <SelectTrigger>اختر المدينة</SelectTrigger>
+              <SelectContent>
+                {cities.map((city) => (
+                  <SelectItem key={city.id} value={String(city.id)}>{city.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Dropdown for Salary Type */}
+            <label htmlFor="salaryTypeId">نوع الراتب</label>
+            <Select
+              value={formData.salaryTypeId}
+              onValueChange={(value) => setFormData({ ...formData, salaryTypeId: Number(value) })}
+            >
+              <SelectTrigger>اختر نوع الراتب</SelectTrigger>
+              <SelectContent>
+                {salaryTypes.map((type) => (
+                  <SelectItem key={type.id} value={String(type.id)}>{type.type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Dropdown for Courses */}
+            <label htmlFor="coursesIds">الدورات</label>
+            <Select
+              value=""
+              onValueChange={(value) => {
+                const courseId = Number(value);
+                setFormData((prev) => ({
+                  ...prev,
+                  coursesIds: prev.coursesIds.includes(courseId)
+                    ? prev.coursesIds.filter((id) => id !== courseId)
+                    : [...prev.coursesIds, courseId],
+                }));
+              }}
+            >
+              <SelectTrigger>اختر الدورات</SelectTrigger>
+              <SelectContent>
+                {courses.map((course) => (
+                  <SelectItem key={course.id} value={String(course.id)}>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.coursesIds.includes(course.id)}
+                        readOnly
+                        className="mr-2"
+                      />
+                      {course.title}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button type="submit">حفظ التعديلات</Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

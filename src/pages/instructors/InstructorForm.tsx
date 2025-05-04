@@ -25,7 +25,7 @@ interface InstructorFormProps {
   onCancel: () => void;
 }
 
-const InstructorForm: React.FC<InstructorFormProps> = ({
+const InstructorForm: React.FC<InstructorFormProps> = function ({ 
   values,
   onChange,
   onSelectChange,
@@ -33,20 +33,31 @@ const InstructorForm: React.FC<InstructorFormProps> = ({
   submitLabel,
   onCancel,
 }) => {
-  const [cities, setCities] = useState([]);
-  const [salaryTypes, setSalaryTypes] = useState([]);
+  interface City {
+    id: number;
+    name: string;
+  }
+  
+  const [cities, setCities] = useState<City[]>([]);
+  interface SalaryType {
+    id: number;
+    name: string;
+  }
+
+  const [salaryTypes, setSalaryTypes] = useState<SalaryType[]>([]);
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
         const [citiesRes, salaryTypesRes, coursesRes] = await Promise.all([
-          getHelpTableCity(),
-          getHelpTableSalaryType(),
-          getCoursesPaginated({ Page: 1, Limit: 100 }),
+        getHelpTableCity(),
+        getHelpTableSalaryType(),
+        getCoursesPaginated({ Page: 1, Limit: 100 }),
         ]);
-        setCities(citiesRes.data || []);
-        setSalaryTypes(salaryTypesRes.data || []);
+        setCities((citiesRes.data as City[]) || []);
+        setSalaryTypes((salaryTypesRes.data as SalaryType[]) || []);
+        setCourses(coursesRes.data?.data || []);
         setCourses(coursesRes.data?.data || []);
       } catch (error) {
         console.error('Failed to fetch dropdown data', error);

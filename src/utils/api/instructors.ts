@@ -1,5 +1,7 @@
 import axios from "./axios";
 import { API_BASE_URL } from "./constants";
+import { getCoursesPaginated } from "./courses";
+
 const BASE_URL = `${API_BASE_URL}/Instructors`;
 
 export interface CreateInstructorDto {
@@ -71,9 +73,30 @@ export const getInstructorsPaginated = async (params: {
   OnlyDeleted?: boolean;
 }): Promise<InstructorDtoPaginationResult> => {
   const res = await axios.get<InstructorDtoPaginationResult>(`${BASE_URL}/pagination`, { params });
+  console.log("Fetched instructors data:", res.data); // Log fetched data
   return res.data;
 };
 
 export const restoreInstructor = async (id: number): Promise<void> => {
   await axios.put(`${BASE_URL}/restore/${id}`);
+};
+
+export const getCities = async (): Promise<{ id: number; name: string }[]> => {
+  const res = await axios.get<{ id: number; name: string }[]>(`${API_BASE_URL}/HelpTables/City`);
+  return res.data;
+};
+
+export const getSalaryTypes = async (): Promise<{ id: number; type: string }[]> => {
+  const res = await axios.get<{ id: number; type: string }[]>(`${API_BASE_URL}/HelpTables/SalaryType`);
+  return res.data;
+};
+
+export const getCourses = async (): Promise<{ id: number; title: string }[]> => {
+  const coursesRes = await getCoursesPaginated({ Page: 1, Limit: 100 });
+  return coursesRes.data.map((course: any) => ({ id: course.id, title: course.name }));
+};
+
+export const getInstructorsByCourse = async (courseId: string): Promise<{ id: string; name: string }[]> => {
+  const res = await axios.get<{ id: string; name: string }[]>(`${API_BASE_URL}/Instructors/by-course/${courseId}`);
+  return res.data;
 };

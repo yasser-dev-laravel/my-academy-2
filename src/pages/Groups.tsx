@@ -15,6 +15,7 @@ import { getHelpTableRoom } from "@/utils/api/helpTables";
 import { getInstructorsPaginated } from "@/utils/api/instructors";
 import { getStudentsPaginated } from "@/utils/api/students";
 import { getGroupsPaginated } from "@/utils/api/groups";
+// import { getLevelsPaginated } from "@/utils/api/levels"; // Import the API function
 
 interface Instructor {
   id: string;
@@ -36,8 +37,12 @@ function getArabicDayName(day: number) {
 }
 
 const generateCode = (prefix: string, existingItems: any[]) => {
+  if (existingItems.length === 0) {
+    return `${prefix}001`;
+  }
+
   const lastItem = existingItems[existingItems.length - 1];
-  const lastNumber = lastItem ? parseInt(lastItem.code.replace(prefix, "")) : 0;
+  const lastNumber = lastItem && lastItem.code ? parseInt(lastItem.code.replace(prefix, "")) : 0;
   return `${prefix}${(lastNumber + 1).toString().padStart(3, "0")}`;
 };
 
@@ -55,6 +60,7 @@ export default function Groups() {
   const [branches, setBranches] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
   const [instructors, setInstructors] = useState<any[]>([]);
+  const [filteredInstructors, setFilteredInstructors] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const navigate = useNavigate();
 
@@ -98,10 +104,18 @@ export default function Groups() {
         setRooms((roomsRes.data as any[]) || []);
 
         const instructorsRes = await getInstructorsPaginated({ Page: 1, Limit: 100 });
-        setInstructors(instructorsRes.data || []);
+        const filteredInstructors = instructorsRes.data.filter((instructor: any) =>
+          instructor.courses?.includes(newGroup.courseId)
+        );
+        setFilteredInstructors(filteredInstructors);
 
         const studentsRes = await getStudentsPaginated({ Page: 1, Limit: 100 });
         setStudents(studentsRes.data || []);
+
+        const levelsRes = coursesRes.data
+          .filter((course: any) => course.id === newGroup.courseId) // Filter levels by selected course
+          .flatMap((course: any) => course.levels || []);
+        setLevels(levelsRes);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -172,6 +186,68 @@ export default function Groups() {
       }
     }
   }, [newGroup.levelId, levels]);
+
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      try {
+        const instructorsRes = await getInstructorsPaginated({ Page: 1, Limit: 100 });
+        const filteredInstructors = instructorsRes.data.filter((instructor: any) =>
+          instructor.courses?.includes(newGroup.courseId)
+        );
+        setFilteredInstructors(filteredInstructors);
+      } catch (error) {
+        console.error("Error fetching instructors:", error);
+      }
+    };
+
+    fetchInstructors();
+  }, []);
+
+  useEffect(() => {
+    if (newGroup.courseId) {
+      const selectedCourse = courses.find(course => course.id === newGroup.courseId);
+      const courseLevels = selectedCourse?.levels || [];
+      setLevels(courseLevels);
+    } else {
+      setLevels([]);
+    }
+  }, [newGroup.courseId, courses]);
+
+  useEffect(() => {
+    if (newGroup.courseId) {
+        const selectedCourse = courses.find(course => course.id === newGroup.courseId);
+        const courseInstructors = selectedCourse?.instructors || [];
+        setFilteredInstructors(courseInstructors);
+    } else {
+        setFilteredInstructors([]);
+    }
+  }, [newGroup.courseId, courses]);
+
+  useEffect(() => {
+    if (newGroup.courseId) {
+        const filteredInstructors = instructors.filter((instructor: any) =>
+            instructor.coursesIds?.includes(newGroup.courseId)
+        );
+        setFilteredInstructors(filteredInstructors);
+    } else {
+        setFilteredInstructors([]);
+    }
+  }, [newGroup.courseId, instructors]);
+
+  const handleCourseChange = async (courseId: string) => {
+    setNewGroup((g: any) => ({ ...g, courseId, instructorId: "" }));
+    if (courseId) {
+      try {
+        const instructors = await getInstructorsByCourse(courseId);
+        console.log("Instructors fetched for course:", instructors); // Log API response
+        setFilteredInstructors(instructors);
+      } catch (error) {
+        console.error("Failed to fetch instructors", error);
+      }
+    } else {
+      setFilteredInstructors([]);
+    }
+  };
 
   const handleAddGroup = () => {
     if (!newGroup.name || !newGroup.courseId || !newGroup.levelId || !newGroup.branchId || !newGroup.labId || !newGroup.instructorId || !newGroup.weeklyDays.length || !newGroup.startTime || !newGroup.duration || !newGroup.startDate || !newGroup.status) {
@@ -264,12 +340,7 @@ export default function Groups() {
             </div>
             <div>
               <label className="block mb-1 font-bold">الكورس</label>
-              <Select value={newGroup.courseId} onValueChange={v => {
-                setNewGroup((g: any) => ({ ...g, courseId: v, levelId: "", instructorId: "" }));
-                const course = courses.find(c => c.id === v);
-                setLevels(course?.levels || []);
-                setInstructors(getFromLocalStorage("latin_academy_instructors", []).filter(i => i.courses.includes(v)));
-              }}>
+              <Select value={newGroup.courseId} onValueChange={handleCourseChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="اختر الكورس" />
                 </SelectTrigger>
@@ -309,10 +380,20 @@ export default function Groups() {
             </div>
             <div>
               <label className="block mb-1 font-bold">المحاضر</label>
-              <Select value={newGroup.instructorId} onValueChange={v => setNewGroup((g: any) => ({ ...g, instructorId: v }))}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="اختر المحاضر" /></SelectTrigger>
+              <Select
+                value={newGroup.instructorId}
+                onValueChange={(value) => setNewGroup((g: any) => ({ ...g, instructorId: value }))}
+                disabled={!newGroup.courseId}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="اختر المحاضر" />
+                </SelectTrigger>
                 <SelectContent>
-                  {instructors.map(i => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
+                  {filteredInstructors.map((instructor) => (
+                    <SelectItem key={instructor.id} value={instructor.id}>
+                      {instructor.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -601,3 +682,27 @@ export default function Groups() {
     </div>
   );
 }
+const getInstructorsByCourse = async (courseId: string) => {
+  try {
+    const instructorsRes = await getInstructorsPaginated({ Page: 1, Limit: 100 });
+    const allInstructors = instructorsRes.data || [];
+
+    console.log("Fetched instructors:", allInstructors); // Log all instructors
+
+    const filteredInstructors = allInstructors.filter((instructor: any) => {
+      if (!instructor.coursesIds) {
+        console.warn(`Instructor ${instructor.id} has no coursesIds field.`);
+        return false;
+      }
+      console.log(`Instructor ${instructor.id} courses:`, instructor.coursesIds); // Log courses for each instructor
+      return instructor.coursesIds.includes(courseId);
+    });
+
+    console.log("Filtered instructors:", filteredInstructors); // Log filtered instructors
+    return filteredInstructors;
+  } catch (error) {
+    console.error("Error fetching instructors by course:", error);
+    return [];
+  }
+};
+
