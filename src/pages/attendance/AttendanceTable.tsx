@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import type { Group, GroupStudent, Room } from "@/utils/api/types";
 
 // بيانات تجريبية: القاعات والأوقات والمحاضرات
 const rooms = [
@@ -21,13 +22,12 @@ const lectures = [
 ];
 
 // بيانات تجريبية للطلاب
-const students = [
-  { id: 1, name: "أحمد علي" },
-  { id: 2, name: "سارة محمد" },
-  { id: 3, name: "محمود حسن" },
-];
 
-export default function AttendanceTable() {
+interface AttendanceTableProps {
+  students: GroupStudent[];
+}
+
+export default function AttendanceTable({ students }: AttendanceTableProps) {
   const [selectedLecture, setSelectedLecture] = useState<any>(null);
   const [attendance, setAttendance] = useState<{ [id: number]: boolean }>({});
   const [loading, setLoading] = useState(false);

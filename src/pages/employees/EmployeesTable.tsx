@@ -4,25 +4,7 @@ import { Trash, Edit } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 // Update Employee interface to match UserDto
-interface Employee {
-  id: string | number;
-  name: string;
-  email: string;
-  phone?: string | null;
-  address?: string | null;
-  nationalId?: string | null; // Added nationalId property
-  cityName?: string | null; // Added cityName property
-  salary?: number | null; // Added salary property
-  salaryTypeName?: string | null; // Added salaryTypeName property
-  roles?: string[]; // Updated to match UserDto
-  jobTitle?: string | null; // Added jobTitle property
-}
-
-interface EmployeesTableProps {
-  employees: Employee[];
-  onDelete: (id: string|number) => void;
-  onEdit: (employee: Employee) => void;
-}
+import type { Employee, EmployeesTableProps } from "@/utils/api/types";
 
 const EmployeesTable = ({ employees, onDelete, onEdit }: EmployeesTableProps) => (
   <Table>

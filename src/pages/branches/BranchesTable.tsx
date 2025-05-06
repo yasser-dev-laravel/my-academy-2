@@ -2,20 +2,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Building, MapPin, Trash } from "lucide-react";
 
-interface Branch {
-  id: string;
-  name: string;
-  address?: string;
-  governorate?: string;
-  areaId?: string;
-  areaDisplay?: string;
-}
+// تم التحديث لاستخدام الأنواع الموحدة من coreTypes
+import type { BrancheGetByIdType } from "@/utils/api/coreTypes";
 
 interface BranchesTableProps {
-  branches: Branch[];
-  onEdit: (branch: Branch) => void;
-  onDelete: (id: string) => void;
+  branches: BrancheGetByIdType[];
+  onEdit: (branch: BrancheGetByIdType) => void;
+  onDelete: (id: number) => void;
 }
+
 
 const BranchesTable = ({ branches, onEdit, onDelete }: BranchesTableProps) => (
   <Table>
@@ -42,7 +37,7 @@ const BranchesTable = ({ branches, onEdit, onDelete }: BranchesTableProps) => (
           <TableCell>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{branch.areaDisplay || '-'}</span>
+              <span>{branch.areaName || '-'}</span>
             </div>
           </TableCell>
           <TableCell className="text-right flex gap-2 justify-end">

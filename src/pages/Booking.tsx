@@ -7,16 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { saveToLocalStorage } from "@/utils/localStorage";
+import { saveToLocalStorage } from "@/utils/api/localStorage";
 
-interface Group {
-  id: string;
-  name: string;
-  courseId: string;
-  branchId: string;
-  startDate: string;
-  students: string[]; // student ids
-}
+import type { Group } from "@/utils/api/types";
 
 interface Student {
   id: string;

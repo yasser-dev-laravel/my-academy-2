@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import InstructorsTable from "./InstructorsTable";
 import InstructorForm from "./InstructorForm";
-import { getInstructorsPaginated, createInstructor, updateInstructor, deleteInstructor, getCities, getSalaryTypes, getCourses } from "@/utils/api/instructors";
+import { getByPagination, create, edit, deleteById  } from "@/utils/api/coreApi";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 
 const InstructorsPage = () => {
@@ -35,29 +35,33 @@ const InstructorsPage = () => {
     fetchAll();
   }, []);
 
-  useEffect(() => {
-    const fetchDropdownData = async () => {
-      try {
-        const [cities, salaryTypes, courses] = await Promise.all([
-          getCities(),
-          getSalaryTypes(),
-          getCourses(),
-        ]);
-        setCities(cities);
-        setSalaryTypes(salaryTypes);
-        setCourses(courses);
-      } catch (error) {
-        toast({ title: "خطأ", description: "فشل في جلب بيانات القوائم المنسدلة", variant: "destructive" });
-      }
-    };
+  // useEffect(() => {
+  //   const fetchDropdownData = async () => {
+  //     try {
+  //       const [cities, salaryTypes, courses] = await Promise.all([
+  //         getByPagination(),
+  //         getByPagination(),
+  //         getByPagination(),
+  //       ]);
+  //       setCities(cities);
+  //       setSalaryTypes(salaryTypes);
+  //       setCourses(courses);
+  //     } catch (error) {
+  //       toast({ title: "خطأ", description: "فشل في جلب بيانات القوائم المنسدلة", variant: "destructive" });
+  //     }
+  //   };
 
-    fetchDropdownData();
-  }, []);
+  //   fetchDropdownData();
+  // }, []);
 
   const fetchAll = async () => {
     try {
-      const res = await getInstructorsPaginated({ Page: 1, Limit: 100 });
-      setInstructors(res.data || []);
+      const resInstructor = await getByPagination<{ data: any[] }>("Instructors/pagination", { Page: 1, Limit: 100 });
+      setInstructors(resInstructor.data || []);
+      const resCities = await getByPagination<{ data: any[] }>("Cityes/pagination", { Page: 1, Limit: 100 });
+      setCities(resCities.data || []);
+      const resSalaryTypes = await getByPagination<{ data: any[] }>("HelpTables/SalaryType", {  });
+      setSalaryTypes(resSalaryTypes.data || []);
     } catch (error) {
       setInstructors([]);
       toast({ title: "خطأ", description: "فشل في جلب بيانات المحاضرين", variant: "destructive" });
@@ -81,9 +85,9 @@ const InstructorsPage = () => {
     }
     try {
       if (editDialog.open) {
-        await updateInstructor(editDialog.instructor.id, formData);
+        await edit("Instructors", editDialog.instructor.id, formData);
       } else {
-        await createInstructor(formData);
+        await create("Instructors", formData);
       }
       toast({ title: "تم بنجاح", description: "تم حفظ بيانات المحاضر بنجاح" });
       setIsDialogOpen(false);
@@ -106,7 +110,7 @@ const InstructorsPage = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await deleteInstructor(id);
+      await deleteById("Instructors", id);
       toast({ title: "تم بنجاح", description: "تم حذف المحاضر بنجاح" });
       fetchAll();
     } catch (error) {

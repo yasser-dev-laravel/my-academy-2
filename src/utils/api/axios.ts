@@ -1,8 +1,11 @@
 import axios from "axios";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_HelpTable_URL = import.meta.env.VITE_API_HelpTable_URL;
+
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL, // استخدام متغير البيئة
-  timeout: 10000, // Optional: Set a timeout in milliseconds
+  baseURL: API_BASE_URL,
+  timeout: 90000, // Optional: Set a timeout in milliseconds
 });
 
 // Add logging to verify if the token is being included in requests

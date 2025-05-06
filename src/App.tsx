@@ -22,10 +22,13 @@ import Leads from "./pages/Leads";
 import Students from "./pages/Students";
 import Booking from "./pages/Booking";
 import Groups from "./pages/groups";
-import Attendance from "./pages/Attendance";
+import  Areas from  "./pages/areas";
+import  Cities from "./pages/cities";
+import Attendance from "./pages/attendance";
 import Settings from "./pages/Settings";
 import Roles from "./pages/Roles";
-import Receipts from "./pages/Receipts";
+// import Receipts from "./pages/Receipts";
+import FinancialReport from "./pages/FinancialReport";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +57,8 @@ const AuthWrapper = () => {
         <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/branches" element={<Branches />} />
         <Route path="/rooms" element={<Rooms />} />
+        <Route path="/areas" element={<Areas />} />
+        <Route path="/cities" element={<Cities />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/instructors" element={<Instructors />} />
@@ -66,7 +71,8 @@ const AuthWrapper = () => {
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/roles" element={<Roles />} />
-        <Route path="/receipts" element={<Receipts />} />
+        {/* <Route path="/receipts" element={<Receipts />} /> */}
+        <Route path="/FinancialReport" element={<FinancialReport />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Layout>

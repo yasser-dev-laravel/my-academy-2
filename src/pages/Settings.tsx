@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { getBranchesPaginated } from "@/utils/api/branches";
+import { getByPagination } from "@/utils/api/coreApi";
 import { Branch } from "@/utils/mockData";
 import { Button } from "@/components/ui/button";
 

@@ -30,7 +30,6 @@ const LoginForm = () => {
     setIsLoading(true);
     setErrorMessage("");
     
-    console.log("Submitting login with:", userNameOrEmail, password);
     
     try {
       const success = await login(userNameOrEmail, password);

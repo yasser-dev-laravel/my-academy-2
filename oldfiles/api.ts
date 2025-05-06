@@ -7,13 +7,10 @@ export const api = {
   // Courses
   getCourses: () => axios.get(`${API_BASE_URL}/courses`).then(res => res.data),
   
-  // Levels
-  getLevels: () => axios.get(`${API_BASE_URL}/levels`).then(res => res.data),
-  
   // Groups
-  getGroups: () => axios.get(`${API_BASE_URL}/groups`).then(res => res.data),
-  updateGroup: (groupId: string, data: any) => axios.put(`${API_BASE_URL}/groups/${groupId}`, data),
-  createGroup: (data: any) => axios.post(`${API_BASE_URL}/groups`, data),
+  getGroups: () => axios.get(`${API_BASE_URL}/Groups`).then(res => res.data),
+  updateGroup: (groupId: string, data: any) => axios.put(`${API_BASE_URL}/Groups/${groupId}`, data),
+  createGroup: (data: any) => axios.post(`${API_BASE_URL}/Groups`, data),
   
   // Sessions
   getGroupSessions: (groupId: string) => axios.get(`${API_BASE_URL}/sessions?groupId=${groupId}`).then(res => res.data),
@@ -24,7 +21,7 @@ export const api = {
   saveAttendance: (data: any) => axios.post(`${API_BASE_URL}/attendance`, data),
   
   // Students
-  getStudents: () => axios.get(`${API_BASE_URL}/students`).then(res => res.data),
+  getStudents: () => axios.get(`${API_BASE_URL}/Students`).then(res => res.data),
   
   // Instructors
   getInstructors: () => axios.get(`${API_BASE_URL}/instructors`).then(res => res.data),

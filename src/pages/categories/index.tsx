@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import CategoriesTable from "./CategoriesTable";
 import CategoryForm from "./CategoryForm";
-import { getCategoriesPaginated, createCategory, updateCategory, deleteCategory } from "@/utils/api/categories";
+import { getByPagination, create, edit, deleteById } from "@/utils/api/coreApi";
+import type { CategoryGetByIdType, CategoryCreateType } from "@/utils/api/coreTypes";
 
 const Departments = () => {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryGetByIdType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({ name: "", description: "" });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -22,7 +23,7 @@ const Departments = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await getCategoriesPaginated({ Page: 1, Limit: 100 });
+      const res = await getByPagination<{ data: CategoryGetByIdType[] }>("Categories/pagination", { Page: 1, Limit: 100 });
       setCategories(res.data || []);
     } catch (error) {
       setCategories([]);
@@ -49,11 +50,12 @@ const Departments = () => {
     }
     try {
       if (editDialog.open && editDialog.category) {
-        await updateCategory(editDialog.category.id, { id: editDialog.category.id, name: formData.name, description: formData.description });
+        await edit("Categories", editDialog.category.id, { id: editDialog.category.id, name: formData.name, description: formData.description });
+        // await edit("Categories", editDialog.category.id, { name: formData.name, description: formData.description });
         toast({ title: "تم بنجاح", description: "تم تعديل التصنيف بنجاح" });
         setEditDialog({ open: false, category: null });
       } else {
-        await createCategory({ name: formData.name, description: formData.description });
+        await create("Categories", { name: formData.name, description: formData.description });
         toast({ title: "تم بنجاح", description: "تم إضافة التصنيف بنجاح" });
         setIsDialogOpen(false);
       }
@@ -66,7 +68,7 @@ const Departments = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await deleteCategory(id);
+      await deleteById("Categories", id);
       toast({ title: "تم بنجاح", description: "تم حذف التصنيف بنجاح" });
       fetchCategories();
     } catch (error) {

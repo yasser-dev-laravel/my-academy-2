@@ -11,11 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { getBranchesPaginated } from "@/utils/api/branches";
+import { getByPagination } from "@/utils/api/coreApi";
+import type { BrancheGetByIdType, StudentGetByIdType } from "@/utils/api/coreTypes";
 import { Search } from "lucide-react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import StudentReceipts from "@/components/StudentReceipts";
-import { getStudentsPaginated, createStudent } from "@/utils/api/students";
+// TODO: استخدم create من coreApi إذا كان متوفرًا أو أنشئ دالة موحدة للإنشاء
+// import { create } from "@/utils/api/coreApi";
 import { Branch, Course } from "@/utils/mockData";
 
 interface Student {
@@ -47,8 +49,8 @@ interface StudentGroupEnrollment {
 }
 
 function Students() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
+  const [students, setStudents] = useState<StudentGetByIdType[]>([]);
+  const [branches, setBranches] = useState<BrancheGetByIdType[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBranch, setSelectedBranch] = useState<string>("__all__");
@@ -72,7 +74,7 @@ function Students() {
   useEffect(() => {
     async function fetchBranchesAndStudents() {
       try {
-        const res = await getBranchesPaginated({ Page: 1, Limit: 100 });
+        const res = await getByPagination<{ data: BrancheGetByIdType[] }>("Branches/pagination", { Page: 1, Limit: 100 });
         const mappedBranches = Array.isArray(res.data)
           ? res.data.filter(b => b && typeof b.id !== 'undefined' && (typeof b.name === 'string' && b.name.trim() !== ''))
             .map((b: any) => ({

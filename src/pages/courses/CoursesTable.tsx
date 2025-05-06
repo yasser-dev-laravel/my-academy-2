@@ -4,28 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Trash, Edit } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
-interface Course {
-  id: number;
-  name: string;
-  description: string;
-  isActive: boolean;
-  categoryId: number;
-  categoryName: string;
-  applicationId: number;
-  levels: {
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-    sessionsCount: number;
-  }[];
-}
-
-interface CoursesTableProps {
-  courses: Course[];
-  onEdit: (course: Course) => void;
-  onDelete: (id: number) => void;
-}
+import type { Course, CoursesTableProps } from "@/utils/api/types";
 
 const CoursesTable: React.FC<CoursesTableProps> = ({ courses, onEdit, onDelete }) => (
   <Table className="table-striped">

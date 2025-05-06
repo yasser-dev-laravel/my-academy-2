@@ -6,10 +6,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import EmployeesTable from "./EmployeesTable";
 import EmployeeForm from "./EmployeeForm";
-import { getHelpTableCity, getHelpTableSalaryType } from "@/utils/api/helpTables";
-import { getRolesPaginated } from "@/utils/api/roles";
-import { API_BASE_URL } from "@/utils/api/constants";
-import { getUsersPaginated, createUser, updateUser, deleteUser } from "@/utils/api/users";
+import { getByPagination, create, edit, deleteById } from "@/utils/api/coreApi";
+import type { EmployeeGetByIdType, EmployeeCreateType } from "@/utils/api/coreTypes";
 
 const EmployeesPage = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -37,20 +35,22 @@ const EmployeesPage = () => {
 
   useEffect(() => {
     fetchAll();
-    // Fetch roles using getRolesPaginated
-    getRolesPaginated({ Page: 1, Limit: 100 }).then((res) => setRoles(res.data ?? []));
+    getByPagination("Roles/pagination", { Page: 1, Limit: 100 }).then((res) => setRoles(res.data ?? []));
   }, []);
 
   const fetchAll = async () => {
     try {
-      const [usersRes, citiesRes, salaryTypesRes] = await Promise.all([
-        getUsersPaginated({ Page: 1, Limit: 100 }),
-        getHelpTableCity(),
-        getHelpTableSalaryType(),
+      const [usersRes, citiesRes] = await Promise.all([
+        getByPagination("Users/pagination", { Page: 1, Limit: 100 }),
+        getByPagination("Cityes/pagination", { Page: 1, Limit: 100 }),
       ]);
       setEmployees(usersRes.data || []);
       setCities((citiesRes.data as any[]) || []);
-      setSalaryTypes((salaryTypesRes.data as any[]) || []);
+      setSalaryTypes([
+        { id: 1, name: "Type 1" },
+        { id: 2, name: "Type 2" },
+        { id: 3, name: "Type 3" },
+      ]);
     } catch (error) {
       setEmployees([]);
       setCities([]);
@@ -94,9 +94,9 @@ const EmployeesPage = () => {
         roleIds: formData.roleIds || [],
       };
       if (editDialog.open) {
-        await updateUser(editDialog.employee.id, payload);
+        await edit("Users", editDialog.employee.id, payload);
       } else {
-        await createUser(payload);
+        await create("Users", payload);
       }
       toast({ title: "تم بنجاح", description: "تم حفظ بيانات الموظف بنجاح" });
       setIsDialogOpen(false);
@@ -122,7 +122,7 @@ const EmployeesPage = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await deleteUser(id);
+      await deleteById("Users", id);
       toast({ title: "تم بنجاح", description: "تم حذف الموظف بنجاح" });
       fetchAll();
     } catch (error) {

@@ -106,8 +106,6 @@ const menuTranslations = {
     home: "الرئيسية",
     academy: "إدارة الأكاديمية",
     branches: "الفروع",
-    cities: "المدن",
-    areas: "المناطق",
     rooms: "المعامل والقاعات",
     departments: "الأقسام",
     system: "إدارة النظام",
@@ -165,7 +163,7 @@ export const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }: SidebarProps) =
   const { user } = useAuth();
   const { language, isRTL } = useLanguage();
   const t = menuTranslations[language];
-
+  console.log(user.roleIds);
 
   // Helper to get roleIds as array (handles undefined/null)
 //   const user.roleIds = Array.isArray(user?.roleIds)
@@ -175,26 +173,24 @@ export const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }: SidebarProps) =
 //       : [];
 // console.log(user.roleIds);
   // تعريف صلاحيات كل عنصر بناءً على رقم الدور
-  // const roleIds: number[] = Array.isArray(user?.roleIds) ? user.roleIds : [];
-  const roleIds: number[] = [1,2,3];
-
+  const roleIds: number[] = Array.isArray(user?.roleIds) ? user.roleIds : [];
   const canSeeAcademy = roleIds.includes(1); // مثال: 1 = admin
   const canSeeSystem = roleIds.includes(1);
-  const canSeeEducation = roleIds.includes(1);
-  const canSeeInstructors = roleIds.includes(1);
-  const canSeeGroups = roleIds.includes(1);
-  const canSeeAttendance = roleIds.includes(1);
-  const canSeeCustomers =  roleIds.includes(1);
-  const canSeeLeads =  roleIds.includes(1);
-  const canSeeStudents =  roleIds.includes(1);
-  const canSeeFinance =  roleIds.includes(1);
-  const canSeeReceipts =  roleIds.includes(1);
-  const canSeeReports =  roleIds.includes(1);
-  const canSeeMessaging =  roleIds.includes(1);
-  const canSeeCampaigns =  roleIds.includes(1);
-  const canSeeBooking =  roleIds.includes(1);
-  const canSeeSettings =  roleIds.includes(1);
-  const canSeeBranches =  roleIds.includes(1); // مثال: 1=admin, 2=موظف
+  const canSeeEducation = roleIds.some(id => [1,2,3].includes(id));
+  const canSeeInstructors = roleIds.some(id => [1,2,3].includes(id));
+  const canSeeGroups = roleIds.some(id => [1,2,3,4].includes(id));
+  const canSeeAttendance = roleIds.some(id => [1,2,3].includes(id));
+  const canSeeCustomers = user.roleIds.some(id => [1,2].includes(id));
+  const canSeeLeads = user.roleIds.some(id => [1,2].includes(id));
+  const canSeeStudents = user.roleIds.some(id => [1,2,3,4].includes(id));
+  const canSeeFinance = user.roleIds.some(id => [1,2].includes(id));
+  const canSeeReceipts = user.roleIds.some(id => [1,2].includes(id));
+  const canSeeReports = user.roleIds.some(id => [1,2].includes(id));
+  const canSeeMessaging = user.roleIds.some(id => [1,2].includes(id));
+  const canSeeCampaigns = user.roleIds.some(id => [1,2].includes(id));
+  const canSeeBooking = user.roleIds.some(id => [1,2,3,4].includes(id));
+  const canSeeSettings = user.roleIds.some(id => [1].includes(id));
+  const canSeeBranches = user.roleIds.some(id => [1,2].includes(id)); // مثال: 1=admin, 2=موظف
 
   useEffect(() => {
     const handleResize = () => {
@@ -258,40 +254,24 @@ export const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }: SidebarProps) =
           
           {canSeeAcademy && (
             <NavGroup title={t.academy} icon={Landmark} defaultOpen={
-              isActive("/branches") || isActive("/rooms") || isActive("/departments") || isActive("/cities") || isActive("/areas")
+              isActive("/branches") || isActive("/rooms") || isActive("/departments")
             }>
-               <NavItem 
-                 to="/branches" 
-                 icon={Landmark} 
-                 label={t.branches}
-                 active={isActive("/branches")} 
-                 onClick={handleNavItemClick} 
-                 collapsed={collapsed}
-               />
-               <NavItem 
-                 to="/cities" 
-                 icon={Home} 
-                 label={t.cities}
-                 active={isActive("/cities")} 
-                 onClick={handleNavItemClick} 
-                 collapsed={collapsed}
-               />
-               <NavItem 
-                 to="/areas" 
-                 icon={Layers} 
-                 label={t.areas}
-                 active={isActive("/areas")} 
-                 onClick={handleNavItemClick} 
-                 collapsed={collapsed}
-               />
-               <NavItem 
-                 to="/rooms" 
-                 icon={Laptop} 
-                 label={t.rooms}
-                 active={isActive("/rooms")} 
-                 onClick={handleNavItemClick} 
-                 collapsed={collapsed}
-               />
+              <NavItem 
+                to="/branches" 
+                icon={Landmark} 
+                label={t.branches}
+                active={isActive("/branches")} 
+                onClick={handleNavItemClick} 
+                collapsed={collapsed}
+              />
+              <NavItem 
+                to="/rooms" 
+                icon={Laptop} 
+                label={t.rooms}
+                active={isActive("/rooms")} 
+                onClick={handleNavItemClick} 
+                collapsed={collapsed}
+              />
               <NavItem 
                 to="/categories" 
                 icon={Layers} 

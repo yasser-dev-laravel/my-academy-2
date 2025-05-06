@@ -3,11 +3,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import {RoomTypesType} from "@/utils/api/coreTypes";
 
 interface RoomFormProps {
   values: { name: string; branchId: string; type: string; capacity: number|string };
   branches: { id: string|number; name: string }[];
-  roomTypes: { value: string; label: string }[];
+  roomTypes: { id: string|number; name: string }[];
   onChange: (field: string, value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   submitLabel?: string;
@@ -22,13 +23,13 @@ const RoomForm = ({ values, branches, roomTypes, onChange, onSubmit, submitLabel
     </div>
     <div>
       <Label>النوع *</Label>
-      <Select name="type" value={values.type} onValueChange={v => onChange("type", v)}>
+      <Select name="type" value={values.type.toString()} onValueChange={v => onChange("type", v)}>
         <SelectTrigger>
           <SelectValue placeholder="اختر النوع" />
         </SelectTrigger>
         <SelectContent>
           {roomTypes.map(rt => (
-            <SelectItem key={rt.value} value={rt.value}>{rt.label}</SelectItem>
+            <SelectItem key={rt.id} value={String(rt.id)}>{rt.name}</SelectItem>
           ))}
         </SelectContent>
       </Select>

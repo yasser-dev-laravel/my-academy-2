@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL } from "@/utils/api/constants";
+
 import {
   Card,
   CardContent,
@@ -18,45 +18,33 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { getBranchesPaginated, createBranch, deleteBranch, updateBranch } from "@/utils/api/branches";
-import { getAreasPaginated } from "@/utils/api/areaes";
+import { getByPagination, edit, deleteById } from "@/utils/api/coreApi";
+
 import { Plus, Search } from "lucide-react";
 import BranchForm from "./BranchForm";
 import BranchesTable from "./BranchesTable";
+import type { BrancheGetByIdType, BrancheEditType, AreaGetByIdType,BrancheCreateType } from "@/utils/api/coreTypes";
 
 const Branches = () => {
-  const [branches, setBranches] = useState<any>([]);
-  const [areas, setAreas] = useState<any>([]);
+const [branches, setBranches] = useState<BrancheGetByIdType[]>([]);
+  const [areas, setAreas] = useState<AreaGetByIdType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [formData, setFormData] = useState<any>({
-    name: "",
-    address: "",
-    areaId: ""
-  });
+  const [formData, setFormData] = useState<BrancheEditType>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const [editDialog, setEditDialog] = useState({ open: false, branch: null });
-  const [editForm, setEditForm] = useState({ name: "", address: "", areaId: "" });
+  const [editForm, setEditForm] = useState<BrancheEditType>({ id: 0, name: "", address: "", areaId: 0 });
 
   // دالة موحدة لجلب الفروع
   const fetchBranchesAndAreas = async () => {
     try {
       // جلب المناطق أولاً
-      const areasRes = await getAreasPaginated({ Page: 1, Limit: 100 });
-      const allAreas = Array.isArray(areasRes.data) ? areasRes.data.map(a => ({ id: a.id, name: a.name, cityName: a.cityName })) : [];
+      const areasRes = await getByPagination<{ data: AreaGetByIdType[] }>("Areaes/pagination", { Page: 1, Limit: 100 });
+      const allAreas = Array.isArray(areasRes.data) ? areasRes.data : [];
       setAreas(allAreas);
       // جلب الفروع
-      const branchesRes = await getBranchesPaginated({ Page: 1, Limit: 100 });
-      const branchesData = Array.isArray(branchesRes.data) ? branchesRes.data.map(b => {
-        const area = allAreas.find(a => String(a.id) === String(b.areaId));
-        return {
-          id: String(b.id),
-          name: b.name || '',
-          address: b.address || '',
-          areaId: String(b.areaId),
-          areaDisplay: area ? `${area.name} - ${area.cityName}` : '-',
-        };
-      }) : [];
+      const branchesRes = await getByPagination<{ data: BrancheGetByIdType[] }>("Branches/pagination", { Page: 1, Limit: 100 });
+      const branchesData = Array.isArray(branchesRes.data) ? branchesRes.data : [];
       setBranches(branchesData);
     } catch (error) {
       setBranches([]);
@@ -75,17 +63,16 @@ const Branches = () => {
   );
 
   // Handle form changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleChange = (field: keyof BrancheCreateType, value: string) => {
+    setFormData({ ...formData, [field]: field === 'areaId' ? Number(value) : value });
   };
 
   // Handle select changes
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData({ ...formData, [name]: value });
+  const handleSelectChange = (field: keyof BrancheCreateType, value: string) => {
+    setFormData({ ...formData, [field]: field === 'areaId' ? Number(value) : value });
   };
-  const handleEditSelectChange = (name: string, value: string) => {
-    setEditForm({ ...editForm, [name]: value });
+  const handleEditSelectChange = (field: keyof BrancheEditType, value: string) => {
+    setEditForm({ ...editForm, [field]: field === 'areaId' ? Number(value) : value });
   };
 
   // Handle form submit
@@ -100,14 +87,10 @@ const Branches = () => {
       return;
     }
     try {
-      await createBranch({
-        name: formData.name,
-        address: formData.address,
-        areaId: Number(formData.areaId)
-      });
-      // أعد جلب الفروع من الدالة الموحدة
+      // استدعاء دالة إضافة فرع جديد (يفضل أن يكون هناك create في coreApi)
+      await edit<BrancheEditType>("Branches", 0, formData);
       await fetchBranchesAndAreas();
-      setFormData({ name: "", address: "", areaId: "" });
+      setFormData({ id:0,name: "", address: "", areaId: 0 });
       setIsDialogOpen(false);
       toast({ title: "تم بنجاح", description: "تم إضافة الفرع بنجاح" });
     } catch (error) {
@@ -116,10 +99,9 @@ const Branches = () => {
   };
 
   // Handle delete
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
-      await deleteBranch(Number(id));
-      // أعد جلب الفروع من الدالة الموحدة
+      await deleteById("Branches", id);
       await fetchBranchesAndAreas();
       toast({ title: "تم بنجاح", description: "تم حذف الفرع بنجاح" });
     } catch (error) {
@@ -128,16 +110,8 @@ const Branches = () => {
   };
 
   // فتح نافذة التعديل مع بيانات الفرع
-  const handleEdit = async (branch: any) => {
-    if (!areas || areas.length === 0) {
-      try {
-        const res = await getAreasPaginated({ Page: 1, Limit: 100 });
-        setAreas(Array.isArray(res.data) ? res.data.map(a => ({ id: a.id, name: a.name, cityName: a.cityName })) : []);
-      } catch (error) {
-        setAreas([]);
-      }
-    }
-    setEditForm({ name: branch.name, address: branch.address, areaId: branch.areaId });
+  const handleEdit = (branch: BrancheGetByIdType) => {
+    setEditForm({ id: branch.id, name: branch.name, address: branch.address ?? '', areaId: branch.areaId });
     setEditDialog({ open: true, branch });
   };
 
@@ -148,13 +122,7 @@ const Branches = () => {
       return;
     }
     try {
-      await updateBranch(Number(editDialog.branch.id), {
-        id: Number(editDialog.branch.id),
-        name: editForm.name,
-        address: editForm.address,
-        areaId: Number(editForm.areaId)
-      });
-      // أعد جلب الفروع من الدالة الموحدة
+      await edit<BrancheEditType>("Branches", editForm.id, editForm);
       await fetchBranchesAndAreas();
       setEditDialog({ open: false, branch: null });
       toast({ title: "تم تعديل الفرع بنجاح" });

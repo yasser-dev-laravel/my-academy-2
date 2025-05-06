@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CoursesTable from "./CoursesTable";
 import CoursesForm from "./CoursesForm";
-import { createCourse, updateCourse, deleteCourse, getCoursesPaginated } from "@/utils/api/courses";
+import { getByPagination, create, edit, deleteById } from "@/utils/api/coreApi";
+import type { CourseGetByIdType, CourseCreateType } from "@/utils/api/coreTypes";
 import { useLanguage } from "@/context/LanguageContext";
 
 const Courses: React.FC = () => {
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<CourseGetByIdType[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [levels, setLevels] = useState<any[]>([]);
   interface CreateCourseDto {
@@ -17,7 +18,6 @@ const Courses: React.FC = () => {
     isActive: boolean;
     categoryId: number;
     levels: {
-    
       name: string;
       description: string;
       price: number;
@@ -26,21 +26,21 @@ const Courses: React.FC = () => {
   }
 
   const [formData, setFormData] = useState<CreateCourseDto & { categoryName: string; applicationId: number }>({
-      name: "",
-      description: "",
-      isActive: true,
-      categoryId: 0,
-      categoryName: "",
-      applicationId: 0,
-      levels: [
-        {
-          name: "المستوي 1",
-          description: "",
-          price: 0,
-          sessionsCount: 0,
-        },
-      ],
-    });
+    name: "",
+    description: "",
+    isActive: true,
+    categoryId: 0,
+    categoryName: "",
+    applicationId: 0,
+    levels: [
+      {
+        name: "المستوي 1",
+        description: "",
+        price: 0,
+        sessionsCount: 0,
+      },
+    ],
+  });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editDialog, setEditDialog] = useState({ open: false, course: null as any });
   const { language } = useLanguage();
@@ -69,7 +69,7 @@ const Courses: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const coursesRes = await getCoursesPaginated({ Page: 1, Limit: 100 });
+        const coursesRes = await getByPagination<{ data: CourseGetByIdType[] }>("Courses/pagination", { Page: 1, Limit: 100 });
         setCourses(coursesRes.data || []);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -92,11 +92,11 @@ const Courses: React.FC = () => {
     console.log("[SUBMIT] Form data:", formData);
     try {
       if (editDialog.open && editDialog.course) {
-        await updateCourse(editDialog.course.id, formData);
+        await edit("Courses", editDialog.course.id, formData);
       } else {
-        await createCourse(formData);
+        await create("Courses", formData);
       }
-      const coursesRes = await getCoursesPaginated({ Page: 1, Limit: 100 });
+      const coursesRes = await getByPagination<{ data: CourseGetByIdType[] }>("Courses/pagination", { Page: 1, Limit: 100 });
       setCourses(coursesRes.data || []);
       setIsDialogOpen(false);
       setEditDialog({ open: false, course: null });
@@ -107,24 +107,24 @@ const Courses: React.FC = () => {
   };
 
   const handleEdit = (course: any) => {
-    console.log("[EDIT COURSE] Course Data:", course ,course.levels); // Log the course data
+    console.log("[EDIT COURSE] Course Data:", course, course.levels); // Log the course data
     setFormData({
-          name: course.name,
-          description: course.description,
-          isActive: course.isActive,
-          categoryId: course.categoryId,
-          categoryName: course.categoryName || "",
-          applicationId: course.applicationId || 0,
-          levels: course.levels,
-        });
+      name: course.name,
+      description: course.description,
+      isActive: course.isActive,
+      categoryId: course.categoryId,
+      categoryName: course.categoryName || "",
+      applicationId: course.applicationId || 0,
+      levels: course.levels,
+    });
     setEditDialog({ open: true, course });
     setIsDialogOpen(true); // Ensure the dialog opens when editing
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await deleteCourse(id);
-      const coursesRes = await getCoursesPaginated({ Page: 1, Limit: 100 });
+      await deleteById("Courses", id);
+      const coursesRes = await getByPagination<{ data: CourseGetByIdType[] }>("Courses/pagination", { Page: 1, Limit: 100 });
       setCourses(coursesRes.data || []);
     } catch (error) {
       console.error("Error deleting course:", error);

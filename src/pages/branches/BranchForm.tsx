@@ -4,10 +4,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 
+import type { AreaGetByIdType, BrancheEditType } from "@/utils/api/coreTypes";
+
 interface BranchFormProps {
-  values: { name: string; address: string; areaId: string };
-  areas: { id: string|number; name: string; cityName?: string }[];
-  onChange: (field: string, value: string) => void;
+  values: BrancheEditType;
+  areas: AreaGetByIdType[];
+  onChange: (field: keyof BrancheEditType, value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   submitLabel?: string;
   onCancel?: () => void;
@@ -25,14 +27,14 @@ const BranchForm = ({ values, areas, onChange, onSubmit, submitLabel = "حفظ",
     </div>
     <div>
       <Label>المنطقة *</Label>
-      <Select name="areaId" value={values.areaId} onValueChange={v => onChange("areaId", v)}>
+      <Select name="areaId" value={String(values.areaId)} onValueChange={v => onChange("areaId", v)}>
         <SelectTrigger>
           <SelectValue placeholder="اختر المنطقة" />
         </SelectTrigger>
         <SelectContent>
-          {areas.map((area, idx) => (
-            <SelectItem key={area.id || idx} value={String(area.id)}>
-              {area.name} - {area.cityName}
+          {areas.map((area) => (
+            <SelectItem key={area.id} value={String(area.id)}>
+              {area.name}{area.cityName ? ` - ${area.cityName}` : ''}
             </SelectItem>
           ))}
         </SelectContent>

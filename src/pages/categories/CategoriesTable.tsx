@@ -2,17 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Trash, Edit } from "lucide-react";
 
-interface Category {
-  id: string|number;
-  name: string;
-  description: string;
-}
-
-interface CategoriesTableProps {
-  categories: Category[];
-  onDelete: (id: string|number) => void;
-  onEdit: (category: Category) => void;
-}
+import type { Category, CategoriesTableProps } from "@/utils/api/types";
 
 const CategoriesTable = ({ categories, onDelete, onEdit }: CategoriesTableProps) => (
   <Table>

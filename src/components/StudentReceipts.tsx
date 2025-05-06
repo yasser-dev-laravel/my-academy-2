@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { getFromLocalStorage } from '@/utils/localStorage';
+import { getByPagination } from '@/utils/api/coreApi';
 
 export interface Payment {
   id: string;
@@ -39,7 +39,7 @@ const StudentSummary: React.FC<{ studentId: string }> = ({ studentId }) => {
   useEffect(() => {
     setGroups(getFromLocalStorage<Group[]>("latin_academy_groups", []));
     setLevels(getFromLocalStorage<CourseLevel[]>("latin_academy_levels", []));
-    setReceipts(getFromLocalStorage<Payment[]>("latin_academy_receipts", []).filter(r => r.studentId === studentId));
+    getByPagination("Receipts/pagination").then(res => setReceipts((res.data || []).filter(r => r.studentId === studentId)));
   }, [studentId]);
 
   // Find groups joined by this student
@@ -74,7 +74,7 @@ const StudentReceipts: React.FC<StudentReceiptsProps> = ({ studentId }) => {
   const [groups, setGroups] = useState<Group[]>([]);
 
   useEffect(() => {
-    setReceipts(getFromLocalStorage<Payment[]>("latin_academy_receipts", []).filter(r => r.studentId === studentId));
+    getByPagination("Receipts/pagination").then(res => setReceipts((res.data || []).filter(r => r.studentId === studentId)));
     setGroups(getFromLocalStorage<Group[]>("latin_academy_groups", []));
   }, [studentId]);
 

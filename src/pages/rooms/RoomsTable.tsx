@@ -2,18 +2,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Trash, Edit } from "lucide-react";
 
-interface Room {
-  id: string|number;
-  name: string;
-  type: string;
-  capacity: number;
-  branchName: string;
-}
+// import type { Room, RoomsTableProps } from "@/utils/api/types";
+import type { RoomGetAllType } from "@/utils/api/coreTypes";
 
 interface RoomsTableProps {
-  rooms: Room[];
-  onDelete: (id: string|number) => void;
-  onEdit: (room: Room) => void;
+  rooms: RoomGetAllType[];
+  onDelete: (id: number) => void;
+  onEdit: (room: RoomGetAllType) => void;
 }
 
 const RoomsTable = ({ rooms, onDelete, onEdit }: RoomsTableProps) => (

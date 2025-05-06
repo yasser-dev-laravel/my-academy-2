@@ -1,13 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
-
-import { useState, useEffect as useEffectReact } from "react";
-import { getBranchesPaginated } from "@/utils/api/branches";
-import { getStudentsPaginated } from "@/utils/api/students";
-import { getCategoriesPaginated } from "@/utils/api/categories";
-import { getCoursesPaginated } from "@/utils/api/courses";
+import { getByPagination } from "@/utils/api/coreApi";
+import type { BrancheGetByIdType, CourseGetByIdType, CategoryGetByIdType } from "@/utils/api/coreTypes";
 import { Users, BookOpen, BookText, Building, FolderOpen } from "lucide-react";
 
 const DashboardCard = ({ 
@@ -48,21 +44,21 @@ const Index = () => {
   const [studentsError, setStudentsError] = useState<string>("");
 
   // حالة الأقسام
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryGetByIdType[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
   const [categoriesError, setCategoriesError] = useState<string>("");
 
   // حالة الكورسات
-  const [courses, setCourses] = useState<any[]>([]);
+  const [courses, setCourses] = useState<CourseGetByIdType[]>([]);
   const [coursesLoading, setCoursesLoading] = useState<boolean>(true);
   const [coursesError, setCoursesError] = useState<string>("");
 
-  useEffectReact(() => {
+  useEffect(() => {
     async function fetchCourses() {
       setCoursesLoading(true);
       setCoursesError("");
       try {
-        const res = await getCoursesPaginated({ Page: 1, Limit: 1000 });
+        const res = await getByPagination<{ data: CourseGetByIdType[] }>("Courses/pagination", { Page: 1, Limit: 1000 });
         setCourses(res.data || []);
       } catch (error) {
         setCoursesError("تعذر جلب بيانات الكورسات");
@@ -74,29 +70,14 @@ const Index = () => {
     fetchCourses();
   }, []);
 
-  useEffectReact(() => {
-    async function fetchStudents() {
-      setStudentsLoading(true);
-      setStudentsError("");
-      try {
-        const res = await getStudentsPaginated({ Page: 1, Limit: 1000 });
-        setStudents(res.data || []);
-      } catch (error) {
-        setStudentsError("تعذر جلب بيانات الطلاب");
-        setStudents([]);
-      } finally {
-        setStudentsLoading(false);
-      }
-    }
-    fetchStudents();
-  }, []);
+  
 
-  useEffectReact(() => {
+  useEffect(() => {
     async function fetchCategories() {
       setCategoriesLoading(true);
       setCategoriesError("");
       try {
-        const res = await getCategoriesPaginated({ Page: 1, Limit: 1000 });
+        const res = await getByPagination<{ data: CategoryGetByIdType[] }>("Categories/pagination", { Page: 1, Limit: 1000 });
         setCategories(res.data || []);
       } catch (error) {
         setCategoriesError("تعذر جلب بيانات الأقسام");
@@ -117,21 +98,12 @@ const Index = () => {
  
 
   // Branches: fetch from API
-  const [branches, setBranches] = useState([]);
-  useEffectReact(() => {
+  const [branches, setBranches] = useState<BrancheGetByIdType[]>([]);
+  useEffect(() => {
     async function fetchBranches() {
       try {
-        const res = await getBranchesPaginated({ Page: 1, Limit: 100 });
-        // Map BranchDto to Branch type
-        const mappedBranches = Array.isArray(res.data)
-          ? res.data.map((b: any) => ({
-              id: String(b.id),
-              name: b.name || '',
-              code: b.code || '',
-              governorate: b.areaName || '',
-            }))
-          : [];
-        setBranches(mappedBranches);
+        const res = await getByPagination<{ data: BrancheGetByIdType[] }>("Branches/pagination", { Page: 1, Limit: 100 });
+        setBranches(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         setBranches([]);
       }
