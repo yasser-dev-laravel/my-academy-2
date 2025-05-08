@@ -129,15 +129,16 @@ export interface LevelGetByIdType {
   id: number;
   name: string;
   description?: string | null;
+  applicationId: string ;
   sessionsDiortion: number;
   price?: number | null;
-  applicationId?: string | null;
   sessionsCount?: number | null;
 }
 
 export interface LevelCreateType {
   name: string;
   description?: string | null;
+  applicationId: string;
   sessionsDiortion: number;
   price?: number | null;
   sessionsCount?: number | null;
@@ -147,12 +148,23 @@ export interface LevelEditType {
   id: number;
   name?: string | null;
   description?: string | null;
+  applicationId: string;
   sessionsDiortion?: number;
   price?: number | null;
   sessionsCount?: number | null;
 }
 
 // ============== Course Types ==============
+export interface CourseCreateType {
+  // id: number;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+  categoryId: number;
+  categoryName?: string | null;
+  applicationId: string;
+  levels?: LevelGetByIdType[] | null;
+}
 export interface CourseGetByIdType {
   id: number;
   name: string;
@@ -160,16 +172,18 @@ export interface CourseGetByIdType {
   isActive: boolean;
   categoryId: number;
   categoryName?: string | null;
-  applicationId: number;
+  applicationId: string;
   levels?: LevelGetByIdType[] | null;
 }
-
-export interface CourseCreateType {
+export interface CourseGetAllType {
+  id: number;
   name: string;
   description?: string | null;
-  categoryId: number;
   isActive: boolean;
-  levels: LevelCreateType[];
+  categoryId: number;
+  categoryName?: string | null;
+  applicationId: string;
+  levels?: LevelGetByIdType[] | null;
 }
 
 export interface CourseEditType {
@@ -177,7 +191,9 @@ export interface CourseEditType {
   name?: string | null;
   description?: string | null;
   isActive?: boolean;
-  categoryId?: number | null;
+  categoryId: number;
+  categoryName?: string | null;
+  applicationId: string;
   levels: LevelEditType[];
 }
 
@@ -190,7 +206,7 @@ export interface StudentGetByIdType {
   address?: string | null;
   areaId?: number | null;
   birthdate?: string | null;
-  applicationId: number;
+  applicationId: string;
   educationalQualificationDescriptionId?: number | null;
   educationalQualificationTypeId?: number | null;
   educationalQualificationIssuerId?: number | null;
@@ -298,7 +314,7 @@ export interface GroupGetByIdType {
   roomId: number;
   roomName?: string | null;
   roomCapacity: number;
-  applicationId: number;
+  applicationId: string;
   days: GroupDaysEnum;
   daysAsText?: string | null;
   startTime: string;

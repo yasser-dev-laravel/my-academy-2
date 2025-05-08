@@ -3,13 +3,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Trash, Edit } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import {CourseGetAllType} from "@/utils/api/coreTypes";
 
-import type { Course, CoursesTableProps } from "@/utils/api/types";
-
-const CoursesTable: React.FC<CoursesTableProps> = ({ courses, onEdit, onDelete }) => (
+const CoursesTable = ({ courses, onEdit, onDelete }) => (
   <Table className="table-striped">
     <TableHeader>
       <TableRow>
+        <TableHead>كود الكورس</TableHead>
         <TableHead>اسم الكورس</TableHead>
         <TableHead>الوصف</TableHead>
         <TableHead>القسم</TableHead>
@@ -22,6 +22,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses, onEdit, onDelete }
         courses.map((course) => (
           <React.Fragment key={course.id}>
             <TableRow>
+              <TableCell>{course.applicationId}</TableCell>
               <TableCell>{course.name}</TableCell>
               <TableCell>{course.description}</TableCell>
               <TableCell>{course.categoryName}</TableCell>
@@ -45,7 +46,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses, onEdit, onDelete }
                 </Button>
               </TableCell>
             </TableRow>
-            {course.levels.length > 0 && (
+            {course.levels && course.levels.length > 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="p-0">
                   <Accordion type="single" collapsible>
@@ -59,6 +60,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses, onEdit, onDelete }
                               <TableHead>الوصف</TableHead>
                               <TableHead>السعر</TableHead>
                               <TableHead>عدد المحاضرات</TableHead>
+                              <TableHead>كود المستوى</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -68,6 +70,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses, onEdit, onDelete }
                                 <TableCell>{level.description}</TableCell>
                                 <TableCell>{level.price} جنيها</TableCell>
                                 <TableCell>{level.sessionsCount}</TableCell>
+                                <TableCell>{level.applicationId}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -82,7 +85,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ courses, onEdit, onDelete }
         ))
       ) : (
         <TableRow>
-          <TableCell colSpan={5} className="text-center text-muted-foreground">
+          <TableCell colSpan={6} className="text-center text-muted-foreground">
             لا توجد بيانات لعرضها
           </TableCell>
         </TableRow>

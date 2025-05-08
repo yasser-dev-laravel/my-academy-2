@@ -10,22 +10,12 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const Courses: React.FC = () => {
   const [courses, setCourses] = useState<CourseGetByIdType[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [levels, setLevels] = useState<any[]>([]);
-  interface CreateCourseDto {
-    name: string;
-    description: string;
-    isActive: boolean;
-    categoryId: number;
-    levels: {
-      name: string;
-      description: string;
-      price: number;
-      sessionsCount: number;
-    }[];
-  }
 
-  const [formData, setFormData] = useState<CreateCourseDto & { categoryName: string; applicationId: number }>({
+  // استخدم النوع الموحد فقط
+  const [formData, setFormData] = useState<CourseCreateType & { categoryName?: string; applicationId?: number }>({
+    id: 0,
     name: "",
     description: "",
     isActive: true,
@@ -34,9 +24,12 @@ const Courses: React.FC = () => {
     applicationId: 0,
     levels: [
       {
+        id: 0,
         name: "المستوي 1",
         description: "",
+        sessionsDiortion: 0,
         price: 0,
+        applicationId: "",
         sessionsCount: 0,
       },
     ],
@@ -71,8 +64,11 @@ const Courses: React.FC = () => {
       try {
         const coursesRes = await getByPagination<{ data: CourseGetByIdType[] }>("Courses/pagination", { Page: 1, Limit: 100 });
         setCourses(coursesRes.data || []);
+        // جلب التصنيفات
+        const categoriesRes = await getByPagination<{ data: { id: number; name: string }[] }>("Categories/pagination", { Page: 1, Limit: 100 });
+        setCategories(categoriesRes.data || []);
       } catch (error) {
-        console.error("Error fetching courses:", error);
+        console.error("Error fetching courses or categories:", error);
       }
     };
     fetchData();
@@ -89,18 +85,30 @@ const Courses: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("[SUBMIT] Form data:", formData);
     try {
+      let newCourseId = formData.id;
+      let newApplicationId = formData.applicationId;
       if (editDialog.open && editDialog.course) {
         await edit("Courses", editDialog.course.id, formData);
       } else {
-        await create("Courses", formData);
+        // أضف الكورس أولاً ثم حدّث applicationId
+        const created = await create("Courses", { ...formData, applicationId: "" });
+        newCourseId = created.id;
+        newApplicationId = `${created.id}`;
+        // حدّث الكورس ليأخذ applicationId الصحيح
+        await edit("Courses", created.id, { ...formData, applicationId: newApplicationId });
+        // حدّث مستويات الكورس ليأخذ كل مستوى applicationId خاص به
+        const updatedLevels = (formData.levels || []).map((level, idx) => ({
+          ...level,
+          applicationId: `${newApplicationId}-L-${idx + 1}`
+        }));
+        await edit("Courses", created.id, { ...formData, applicationId: newApplicationId, levels: updatedLevels });
       }
       const coursesRes = await getByPagination<{ data: CourseGetByIdType[] }>("Courses/pagination", { Page: 1, Limit: 100 });
       setCourses(coursesRes.data || []);
       setIsDialogOpen(false);
       setEditDialog({ open: false, course: null });
-      setFormData({ name: "", description: "", isActive: true, categoryId: 0, categoryName: "", applicationId: 0, levels: [] });
+      setFormData({ id: 0, name: "", description: "", isActive: true, categoryId: 0, categoryName: "", applicationId: 0, levels: [] });
     } catch (error) {
       console.error("Error saving course:", error);
     }
@@ -109,6 +117,7 @@ const Courses: React.FC = () => {
   const handleEdit = (course: any) => {
     console.log("[EDIT COURSE] Course Data:", course, course.levels); // Log the course data
     setFormData({
+      id: course.id,
       name: course.name,
       description: course.description,
       isActive: course.isActive,
@@ -137,7 +146,34 @@ const Courses: React.FC = () => {
         <h2 className="text-3xl font-bold">{t.manageCourses}</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button
+              onClick={() => {
+                // حساب أعلى id
+                const maxId = courses.length > 0 ? Math.max(...courses.map(c => Number(c.id) || 0)) : 0;
+                setFormData({
+                  id: 0,
+                  name: "",
+                  description: "",
+                  isActive: true,
+                  categoryId: 0,
+                  categoryName: "",
+                  applicationId: `c-${maxId + 1}`,
+                  levels: [
+                    {
+                      id: 0,
+                      name: "المستوي 1",
+                      description: "",
+                      sessionsDiortion: 0,
+                      price: 0,
+                      applicationId: "",
+                      sessionsCount: 0,
+                    },
+                  ],
+                });
+                setIsDialogOpen(true);
+                setEditDialog({ open: false, course: null });
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" /> {t.addCourse}
             </Button>
           </DialogTrigger>
@@ -159,7 +195,7 @@ const Courses: React.FC = () => {
               onCancel={() => {
                 setIsDialogOpen(false);
                 setEditDialog({ open: false, course: null });
-                setFormData({ name: "", description: "", isActive: true, categoryId: 0, categoryName: "", applicationId: 0, levels: [] });
+                setFormData({ id: 0, name: "", description: "", isActive: true, categoryId: 0, categoryName: "", applicationId: 0, levels: [] });
               }}
             />
           </DialogContent>

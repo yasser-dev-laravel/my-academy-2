@@ -3355,6 +3355,28 @@
     }
     }
     },
+    "/api/HelpTables/GetTodaySessions": {
+    "get": {
+    "tags": [
+    "HelpTables"
+    ],
+    "parameters": [
+    {
+    "name": "branchId",
+    "in": "query",
+    "schema": {
+    "type": "integer",
+    "format": "int64"
+    }
+    }
+    ],
+    "responses": {
+    "200": {
+    "description": "OK"
+    }
+    }
+    }
+    },
     "/api/Instructors/{id}": {
     "put": {
     "tags": [
